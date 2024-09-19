@@ -1,0 +1,46 @@
+out/
+
+.DS_Store
+.vscode
+.idea
+*.iml
+.run
+
+# reporting stuff
+*-report.xml
+*.cov
+coverage.xml
+bin/
+
+
+# CI deployment folder
+.deployment
+
+# goreleaser
+dist/
+release/
+
+vendor/
+
+# venv created for the documentation script
+.venv
+
+# binaries
+release/
+cmd/migrationcli/migrationcli
+cmd/relayproxy/relayproxy
+tmp/
+
+# Local dev files
+goff-proxy.yaml
+flags.yaml
+
+go-feature-flag-relay-proxy/
+
+# AWS SAM build folder
+.aws-sam
+
+node_modules/
+oryxBuildBinary
+
+./.sonarlint
