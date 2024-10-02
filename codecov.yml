@@ -1,0 +1,8 @@
+ignore:
+  - "examples"
+  - "testdata"
+  - "testutils"
+  - "**/_test.go"
+  - "**/_mock.go"
+  - "**/testdata/"
+  - "**/testutils/"
