@@ -44,3 +44,11 @@ node_modules/
 oryxBuildBinary
 
 ./.sonarlint
+sonarlint.xml
+vcs.xml
+workspace.xml
+codeStyles/
+inspectionProfiles/
+misc.xml
+modules.xml
+shelf/
