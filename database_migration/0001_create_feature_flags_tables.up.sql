@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS feature_flags
     disable           BOOLEAN DEFAULT FALSE,
     version           TEXT,
     created_date      TIMESTAMP     NOT NULL,
-    last_updated_date TIMESTAMP     NOT NULL
+    last_updated_date TIMESTAMP     NOT NULL,
+    last_modified_by  TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS rules
@@ -31,8 +32,7 @@ CREATE TABLE IF NOT EXISTS rules
     progressive_rollout_start_date         TIMESTAMP,
     progressive_rollout_end_date           TIMESTAMP,
     is_default                             BOOLEAN DEFAULT FALSE NOT NULL,
-    created_date                           TIMESTAMP             NOT NULL,
-    last_updated_date                      TIMESTAMP             NOT NULL,
+    order_index                            INTEGER NOT NULL,
     CONSTRAINT rule_return_something CHECK (percentages IS NOT NULL
         OR variation_result IS NOT NULL
         OR (progressive_rollout_initial_variation IS NOT NULL

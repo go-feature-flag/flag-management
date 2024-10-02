@@ -1,153 +1,119 @@
 package dbmodel
 
 import (
+	"database/sql/driver"
 	"encoding/json"
-	"errors"
+	"time"
+
 	"github.com/go-feature-flag/app-api/model"
 	"github.com/google/uuid"
-	"time"
 )
 
+type JSONB json.RawMessage
+
+func (j JSONB) Value() (driver.Value, error) {
+	valueString, err := json.Marshal(j)
+	return string(valueString), err
+}
+
+func (j *JSONB) Scan(value interface{}) error {
+	return json.Unmarshal(value.([]byte), &j)
+}
+
 type FeatureFlag struct {
-	ID              string         `db:"id"`
+	ID              uuid.UUID      `db:"id"`
 	Name            string         `db:"name"`
 	Description     *string        `db:"description"`
-	Variations      string         `db:"variations"` // JSONB is stored as string
-	Type            model.FlagType `db:"type"`       // variationType is stored as string
+	Variations      JSONB          `db:"variations"`
+	Type            model.FlagType `db:"type"`
 	BucketingKey    *string        `db:"bucketing_key"`
-	Metadata        *string        `db:"metadata"` // JSONB is stored as string
+	Metadata        JSONB          `db:"metadata"`
 	TrackEvents     *bool          `db:"track_events"`
 	Disable         *bool          `db:"disable"`
 	Version         *string        `db:"version"`
 	CreatedDate     time.Time      `db:"created_date"`
 	LastUpdatedDate time.Time      `db:"last_updated_date"`
+	LastModifiedBy  string         `db:"last_modified_by"`
 }
 
-func (f *FeatureFlag) ToAPI(rules []Rule) (model.FeatureFlag, error) {
-	var variations *map[string]*interface{}
-	err := json.Unmarshal([]byte(f.Variations), &variations)
-	if err != nil {
-		return model.FeatureFlag{}, err
-	}
-
-	var metadata *map[string]interface{} = nil
-	if f.Metadata != nil {
-		err = json.Unmarshal([]byte(*f.Metadata), &metadata)
-		if err != nil {
-			return model.FeatureFlag{}, err
-		}
-	}
-
-	var convertedRules []model.Rule
-	var defaultRule *model.Rule = nil
-
-	if rules != nil {
-		convertedRules = make([]model.Rule, 0, len(rules))
-		for _, rule := range rules {
-			convertedRule, err := rule.ToAPI()
-			if err != nil {
-				return model.FeatureFlag{}, err
-			}
-			if rule.IsDefault && defaultRule == nil {
-				defaultRule = &convertedRule
-			} else {
-				convertedRules = append(convertedRules, convertedRule)
-			}
-		}
-	}
-
-	return model.FeatureFlag{
-		ID:              f.ID,
-		Name:            f.Name,
-		CreatedDate:     f.CreatedDate,
-		LastUpdatedDate: f.LastUpdatedDate,
-		Description:     f.Description,
-		VariationType:   f.Type,
-		Rules:           &convertedRules,
-		DefaultRule:     defaultRule,
-		Variations:      variations,
-		BucketingKey:    f.BucketingKey,
-		Disable:         f.Disable,
-		Version:         f.Version,
-		Metadata:        metadata,
-	}, nil
-
-}
-
-func NewFeatureFlag(f model.FeatureFlag) (FeatureFlag, error) {
-	id := f.ID
-	if id == "" {
-		id = uuid.New().String()
-	}
-
-	// Variations
-	if f.Variations == nil {
-		return FeatureFlag{}, errors.New("variations is required")
-	}
-	variations, err := json.Marshal(f.Variations)
+func FromModelFeatureFlag(mff model.FeatureFlag) (FeatureFlag, error) {
+	id, err := uuid.Parse(mff.ID)
 	if err != nil {
 		return FeatureFlag{}, err
 	}
 
-	// Variations
-	var metadata *string = nil
-	if f.Metadata != nil {
-		metadataBytes, err := json.Marshal(f.Variations)
+	variations, err := json.Marshal(mff.Variations)
+	if err != nil {
+		return FeatureFlag{}, err
+	}
+
+	var metadata JSONB
+	if mff.Metadata != nil {
+		metadataBytes, err := json.Marshal(mff.Metadata)
 		if err != nil {
 			return FeatureFlag{}, err
 		}
-		metadataStr := string(metadataBytes)
-		metadata = &metadataStr
+		metadata = JSONB(metadataBytes)
 	}
 
 	return FeatureFlag{
 		ID:              id,
-		Name:            f.Name,
-		Description:     f.Description,
-		Variations:      string(variations),
-		Type:            f.VariationType,
-		BucketingKey:    f.BucketingKey,
+		Name:            mff.Name,
+		Description:     mff.Description,
+		Variations:      JSONB(variations),
+		Type:            mff.VariationType,
+		BucketingKey:    mff.BucketingKey,
 		Metadata:        metadata,
-		TrackEvents:     f.TrackEvents,
-		Disable:         f.Disable,
-		Version:         f.Version,
-		CreatedDate:     f.CreatedDate,
-		LastUpdatedDate: f.LastUpdatedDate,
+		TrackEvents:     mff.TrackEvents,
+		Disable:         mff.Disable,
+		Version:         mff.Version,
+		CreatedDate:     mff.CreatedDate,
+		LastUpdatedDate: mff.LastUpdatedDate,
+		LastModifiedBy:  mff.LastModifiedBy,
 	}, nil
-
 }
 
-//func FeatureFlagFromAPI(f model.FeatureFlag) error {
-//	res := FeatureFlag{}
-//	rollouts := make([]ProgressiveRollout, 0)
-//
-//	// DefaultRule
-//	if f.DefaultRule == nil {
-//		return errors.New("defaultRule is required")
-//	}
-//	if f.DefaultRule.ProgressiveRollout != nil {
-//		//p, err := extractProgressiveRollout(f.DefaultRule.ProgressiveRollout)
-//		//if err != nil {
-//		//	return err
-//		//}
-//		//rollouts = append(rollouts, p)
-//		//res.DefaultProgressiveRolloutID = &p.ID
-//	}
-//	if f.DefaultRule.Percentages != nil {
-//		percentages, err := json.Marshal(f.DefaultRule.Percentages)
-//		if err != nil {
-//			return err
-//		}
-//		percentagesStr := string(percentages)
-//		res.DefaultPercentages = &percentagesStr
-//	}
-//	if f.DefaultRule.VariationResult != nil {
-//		res.DefaultVariationResult = f.DefaultRule.VariationResult
-//	}
-//
+func (ff *FeatureFlag) ToAPI(rules []Rule) (model.FeatureFlag, error) {
+	var apiRules = make([]model.Rule, 0)
+	var defaultRule *model.Rule
+	for _, rule := range rules {
+		convertedRule, err := rule.ToAPI()
+		if err != nil {
+			return model.FeatureFlag{}, err
+		}
+		if rule.IsDefault {
+			defaultRule = &convertedRule
+			continue
+		}
+		apiRules = append(apiRules, convertedRule)
+	}
 
-//	res.Variations = string(variations)
-//	res.Name = f.Name
-//	res.Description = f.Description
-//
-//}
+	var variations map[string]*interface{}
+	err := json.Unmarshal(ff.Variations, &variations)
+	if err != nil {
+		return model.FeatureFlag{}, err
+	}
+
+	var metadata map[string]interface{}
+	err = json.Unmarshal(ff.Metadata, &metadata)
+	if err != nil {
+		return model.FeatureFlag{}, err
+	}
+
+	return model.FeatureFlag{
+		ID:              ff.ID.String(),
+		Name:            ff.Name,
+		Description:     ff.Description,
+		Variations:      &variations,
+		VariationType:   ff.Type,
+		BucketingKey:    ff.BucketingKey,
+		Metadata:        &metadata,
+		TrackEvents:     ff.TrackEvents,
+		Disable:         ff.Disable,
+		Version:         ff.Version,
+		CreatedDate:     ff.CreatedDate,
+		LastUpdatedDate: ff.LastUpdatedDate,
+		Rules:           &apiRules,
+		DefaultRule:     defaultRule,
+	}, nil
+}
