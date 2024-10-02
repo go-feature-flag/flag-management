@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS rules;
+DROP TABLE IF EXISTS feature_flags;
+DROP TYPE IF EXISTS variationType;
