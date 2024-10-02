@@ -17,7 +17,6 @@ This repository is a work in progress initiative to create an API to manage your
 - Postgres database using `sqlx` and `pq` as driver.
 
 
-
 ## Contributing
 ⚠️ Since this it is a work in progress initiative please come to the [Slack channel](https://gofeatureflag.org/slack) first before contributing. 
 
@@ -37,3 +36,5 @@ To start the API:
 make build
 ./out/bin/goff-api
 ```
+
+When started you can access the swagger UI at [http://localhost:3001/swagger/](http://localhost:3001/swagger/).

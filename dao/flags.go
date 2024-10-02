@@ -10,7 +10,7 @@ type Flags interface {
 	// GetFlags return all the flags
 	GetFlags(ctx context.Context) ([]model.FeatureFlag, error)
 
-	// GetFlagById return a flag by its ID
+	// GetFlagByID return a flag by its ID
 	GetFlagByID(ctx context.Context, id string) (model.FeatureFlag, error)
 
 	// GetFlagByName return a flag by its name

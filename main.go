@@ -1,28 +1,34 @@
 package main
 
 import (
+	"github.com/go-feature-flag/app-api/api"
 	"github.com/go-feature-flag/app-api/dao"
 	"github.com/go-feature-flag/app-api/handler"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
+// version, releaseDate are override by the makefile during the build.
+var version = "localdev"
+
+// @title GO Feature Flag - configuration API
+// @description.markdown
+// @contact.name GO feature flag configuration API
+// @contact.url https://gofeatureflag.org
+// @contact.email contact@gofeatureflag.org
+// @license.name MIT
+// @license.url https://github.com/thomaspoignant/go-feature-flag/blob/main/LICENSE
+// @x-logo {"url":"https://raw.githubusercontent.com/thomaspoignant/go-feature-flag/main/logo_128.png"}
+// @BasePath /
+// @in header
+// @name Authorization
 func main() {
+	// TODO: add configuration management for the API server.
 	data, err := dao.NewPostgresDao("localhost", 5432, "gofeatureflag", "goff-user", "my-secret-pw")
 	if err != nil {
 		panic(err)
 	}
+	flagHandlers := handler.NewFlags(data)
 
-	handlers := handler.NewFlags(data)
-
-	e := echo.New()
-	e.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
-	groupV1 := e.Group("/v1")
-	groupV1.GET("/flags", handlers.GetAllFeatureFlags)
-	groupV1.GET("/flags/:id", handlers.GetFeatureFlagsByID)
-	groupV1.POST("/flags", handlers.CreateNewFlag)
-	groupV1.PUT("/flags/:id", handlers.UpdateFlagByID)
-	groupV1.DELETE("/flags/:id", handlers.DeleteFlagByID)
-	groupV1.PATCH("/flags/:id/status", handlers.UpdateFeatureFlagStatus)
-	e.Logger.Fatal(e.Start(":3001"))
+	apiServer := api.New(":3001", flagHandlers)
+	apiServer.Start()
+	defer func() { apiServer.Stop() }()
 }
