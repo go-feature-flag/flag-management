@@ -12,5 +12,28 @@ This repository is a work in progress initiative to create an API to manage your
   - Authentication should be generic enough to be integrated with any authentication provider.
 - We should be able to provide history of a flag to see when it was created, modified and deleted.
 
+## Tech stack
+- GO API using echo
+- Postgres database using `sqlx` and `pq` as driver.
+
+
+
 ## Contributing
-Since this it is a work in progress initiative please come to the [Slack channel](https://gofeatureflag.org/slack) first before contributing. 
+⚠️ Since this it is a work in progress initiative please come to the [Slack channel](https://gofeatureflag.org/slack) first before contributing. 
+
+### How to start the project.
+After cloning the project you can start the database _(using docker)_:
+```shell
+make setup-env
+```
+It will start an instance of postgres with the following credentials:
+- user: `goff-user`
+- password: `my-secret-pw`
+
+And it will apply the database migrations to your environment.
+
+To start the API:
+```shell
+make build
+./out/bin/goff-api
+```
