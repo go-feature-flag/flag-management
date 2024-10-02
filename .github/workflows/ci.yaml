@@ -70,18 +70,18 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-#  swagger-change:
-#    name: Swagger Change
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v4
-#        with:
-#          fetch-depth: 1
-#      - name: Setup go
-#        uses: actions/setup-go@v5
-#        with:
-#          go-version-file: go.mod
-#          check-latest: true
-#      - run: make swagger
-#      - run: git diff --exit-code --quiet
+  swagger-change:
+    name: Swagger Change
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+      - run: make swagger
+      - run: git diff --exit-code --quiet

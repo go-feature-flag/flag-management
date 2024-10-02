@@ -33,7 +33,7 @@ vendor: ## Copy of all packages needed to support builds and tests in the vendor
 ## Dev:
 swagger: ## Build swagger documentation
 	$(GOCMD) install github.com/swaggo/swag/cmd/swag@latest
-	cd cmd/relayproxy && swag init --parseDependency --parseDepth=1 --parseInternal --markdownFiles docs
+	swag init --parseInternal --markdownFiles docs
 
 setup-env:
 	docker stop goff || true

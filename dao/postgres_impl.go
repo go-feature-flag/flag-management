@@ -262,6 +262,26 @@ func (m *pgFlagImpl) UpdateFlag(ctx context.Context, flag model.FeatureFlag) err
 		}
 	}
 
+	// Update the flag
+	if _, errTx := tx.NamedExecContext(
+		ctx,
+		`UPDATE feature_flags SET 
+				 name=:name,
+				 description=:description,
+				 variations=:variations,
+				 bucketing_key=:bucketing_key,
+				 metadata=:metadata,
+				 track_events=:track_events,
+				 disable=:disable,
+				 version=:version,
+				 last_updated_date=:last_updated_date,
+				 last_modified_by=:last_modified_by
+				WHERE id = :id`,
+		dbQuery); err != nil {
+		_ = tx.Rollback
+		return errTx
+	}
+
 	return tx.Commit()
 }
 
