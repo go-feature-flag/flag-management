@@ -9,19 +9,21 @@ import (
 )
 
 // New creates a new instance of the API server
-func New(serverAddress string, flagHandlers handler.Flags) *Server {
+func New(serverAddress string, flagHandlers handler.Flags, healthHandlers handler.Health) *Server {
 	return &Server{
-		flagHandlers:  flagHandlers,
-		apiEcho:       echo.New(),
-		serverAddress: serverAddress,
+		flagHandlers:   flagHandlers,
+		healthHandlers: healthHandlers,
+		apiEcho:        echo.New(),
+		serverAddress:  serverAddress,
 	}
 }
 
 // Server is the struct that represents the API server
 type Server struct {
-	flagHandlers  handler.Flags
-	apiEcho       *echo.Echo
-	serverAddress string
+	flagHandlers   handler.Flags
+	healthHandlers handler.Health
+	apiEcho        *echo.Echo
+	serverAddress  string
 }
 
 // Start starts the API server
@@ -32,6 +34,9 @@ func (s *Server) Start() {
 
 	// Middlewares
 	s.apiEcho.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
+
+	// init health routes
+	s.apiEcho.POST("/health", s.healthHandlers.Health)
 
 	// init API routes
 	groupV1 := s.apiEcho.Group("/v1")

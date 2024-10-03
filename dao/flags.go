@@ -24,4 +24,7 @@ type Flags interface {
 
 	// DeleteFlagByID delete a flag
 	DeleteFlagByID(ctx context.Context, id string) error
+
+	// Ping check that the data layer is available
+	Ping() error
 }

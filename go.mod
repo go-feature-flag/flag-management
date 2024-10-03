@@ -1,8 +1,6 @@
 module github.com/go-feature-flag/app-api
 
-go 1.22.5
-
-toolchain go1.22.7
+go 1.22.7
 
 require (
 	github.com/google/uuid v1.6.0

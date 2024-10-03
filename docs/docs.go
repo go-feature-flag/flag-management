@@ -26,6 +26,29 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/health": {
+            "post": {
+                "description": "Check if the API is up and running and that the database is available.",
+                "tags": [
+                    "Feature Monitoring"
+                ],
+                "summary": "Health endpoint of the API",
+                "responses": {
+                    "200": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handler.successResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/model.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/flags": {
             "get": {
                 "description": "GET request to get all the flags available.",
@@ -282,6 +305,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "handler.successResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "model.FeatureFlag": {
             "type": "object",
             "properties": {
