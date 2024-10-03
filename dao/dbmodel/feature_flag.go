@@ -73,11 +73,11 @@ func FromModelFeatureFlag(mff model.FeatureFlag) (FeatureFlag, error) {
 	}, nil
 }
 
-func (ff *FeatureFlag) ToAPI(rules []Rule) (model.FeatureFlag, error) {
+func (ff *FeatureFlag) ToModelFeatureFlag(rules []Rule) (model.FeatureFlag, error) {
 	var apiRules = make([]model.Rule, 0)
 	var defaultRule *model.Rule
 	for _, rule := range rules {
-		convertedRule, err := rule.ToAPI()
+		convertedRule, err := rule.ToModelRule()
 		if err != nil {
 			return model.FeatureFlag{}, err
 		}

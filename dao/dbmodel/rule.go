@@ -77,7 +77,7 @@ func FromModelRule(mr model.Rule, featureFlagID uuid.UUID, isDefault bool, order
 	return dbr, nil
 }
 
-func (rule *Rule) ToAPI() (model.Rule, error) {
+func (rule *Rule) ToModelRule() (model.Rule, error) {
 	apiRule := model.Rule{
 		ID:      rule.ID.String(),
 		Name:    rule.Name,
