@@ -53,7 +53,7 @@ func (m *pgFlagImpl) GetFlags(ctx context.Context) ([]model.FeatureFlag, error) 
 			return []model.FeatureFlag{}, err
 		}
 
-		convertedFlag, err := flag.ToAPI(rules)
+		convertedFlag, err := flag.ToModelFeatureFlag(rules)
 		if err != nil {
 			return []model.FeatureFlag{}, err
 		}
@@ -80,7 +80,7 @@ func (m *pgFlagImpl) GetFlagByID(ctx context.Context, id string) (model.FeatureF
 		return model.FeatureFlag{}, errRule
 	}
 
-	convertedFlag, err := f.ToAPI(rules)
+	convertedFlag, err := f.ToModelFeatureFlag(rules)
 	if err != nil {
 		return model.FeatureFlag{}, err
 	}
@@ -102,7 +102,7 @@ func (m *pgFlagImpl) GetFlagByName(ctx context.Context, name string) (model.Feat
 		return model.FeatureFlag{}, errRule
 	}
 
-	convertedFlag, err := f.ToAPI(rules)
+	convertedFlag, err := f.ToModelFeatureFlag(rules)
 	if err != nil {
 		return model.FeatureFlag{}, err
 	}
