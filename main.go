@@ -27,8 +27,9 @@ func main() {
 		panic(err)
 	}
 	flagHandlers := handler.NewFlags(data)
+	healthHandlers := handler.NewHealth(data)
 
-	apiServer := api.New(":3001", flagHandlers)
+	apiServer := api.New(":3001", flagHandlers, healthHandlers)
 	apiServer.Start()
 	defer func() { apiServer.Stop() }()
 }

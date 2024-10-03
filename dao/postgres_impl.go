@@ -27,7 +27,6 @@ func NewPostgresDao(serverHost string, port int, database string, username strin
 	instance := &pgFlagImpl{
 		conn: conn,
 	}
-
 	return instance, nil
 }
 
@@ -382,4 +381,11 @@ func (m *pgFlagImpl) updateRule(
              WHERE id=:id`, r)
 
 	return errTx
+}
+
+func (m *pgFlagImpl) Ping() error {
+	if m.conn == nil {
+		return errors.New("database connection is nil")
+	}
+	return m.conn.Ping()
 }

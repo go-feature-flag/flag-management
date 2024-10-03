@@ -32,7 +32,7 @@ vendor: ## Copy of all packages needed to support builds and tests in the vendor
 
 ## Dev:
 swagger: ## Build swagger documentation
-	$(GOCMD) install github.com/swaggo/swag/cmd/swag@latest
+	$(GOCMD) install -g github.com/swaggo/swag/cmd/swag@latest
 	swag init --parseInternal --markdownFiles docs
 
 setup-env:
