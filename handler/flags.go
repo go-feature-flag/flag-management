@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/labstack/echo/v4"
 	"net/http"
 	"time"
 
 	"github.com/go-feature-flag/app-api/dao"
 	"github.com/go-feature-flag/app-api/model"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
 )
 
@@ -39,7 +39,7 @@ func (f Flags) GetAllFeatureFlags(c echo.Context) error {
 	return c.JSON(http.StatusOK, flags)
 }
 
-// GetFeatureFlagsByID is returning the flag belonging to the given ID
+// GetFeatureFlagByID is returning the flag belonging to the given ID
 // @Summary      Return all the information about a flag
 // @Tags Feature Flag management API
 // @Description  GET all the information about a flag with a specific .
@@ -48,7 +48,7 @@ func (f Flags) GetAllFeatureFlags(c echo.Context) error {
 // @Failure      404 {object} model.HTTPError "Not Found"
 // @Failure      500 {object} model.HTTPError "Internal server error"
 // @Router       /v1/flags/{id} [get]
-func (f Flags) GetFeatureFlagsByID(c echo.Context) error {
+func (f Flags) GetFeatureFlagByID(c echo.Context) error {
 	flag, err := f.dao.GetFlagByID(c.Request().Context(), c.Param("id"))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

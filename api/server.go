@@ -41,7 +41,7 @@ func (s *Server) Start() {
 	// init API routes
 	groupV1 := s.apiEcho.Group("/v1")
 	groupV1.GET("/flags", s.flagHandlers.GetAllFeatureFlags)
-	groupV1.GET("/flags/:id", s.flagHandlers.GetFeatureFlagsByID)
+	groupV1.GET("/flags/:id", s.flagHandlers.GetFeatureFlagByID)
 	groupV1.POST("/flags", s.flagHandlers.CreateNewFlag)
 	groupV1.PUT("/flags/:id", s.flagHandlers.UpdateFlagByID)
 	groupV1.DELETE("/flags/:id", s.flagHandlers.DeleteFlagByID)
