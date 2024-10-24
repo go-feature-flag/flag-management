@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"github.com/go-feature-flag/app-api/dao/dbmodel"
+	daoErr "github.com/go-feature-flag/app-api/dao/err"
 	"github.com/go-feature-flag/app-api/model"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -35,26 +35,26 @@ type pgFlagImpl struct {
 }
 
 // GetFlags return all the flags
-func (m *pgFlagImpl) GetFlags(ctx context.Context) ([]model.FeatureFlag, error) {
+func (m *pgFlagImpl) GetFlags(ctx context.Context) ([]model.FeatureFlag, daoErr.DaoError) {
 	var f []dbmodel.FeatureFlag
 	err := m.conn.SelectContext(ctx, &f, "SELECT * FROM feature_flags")
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return []model.FeatureFlag{}, nil
 		}
-		return []model.FeatureFlag{}, err
+		return []model.FeatureFlag{}, daoErr.WrapPostgresError(err)
 	}
 	res := make([]model.FeatureFlag, 0, len(f))
 	for _, flag := range f {
 		var rules []dbmodel.Rule
 		err := m.conn.SelectContext(ctx, &rules, `SELECT * FROM rules WHERE feature_flag_id = $1`, flag.ID)
 		if err != nil {
-			return []model.FeatureFlag{}, err
+			return []model.FeatureFlag{}, daoErr.WrapPostgresError(err)
 		}
 
 		convertedFlag, err := flag.ToModelFeatureFlag(rules)
 		if err != nil {
-			return []model.FeatureFlag{}, err
+			return []model.FeatureFlag{}, daoErr.WrapPostgresError(err)
 		}
 		res = append(res, convertedFlag)
 	}
@@ -62,11 +62,11 @@ func (m *pgFlagImpl) GetFlags(ctx context.Context) ([]model.FeatureFlag, error) 
 }
 
 // GetFlagByID return a flag by its ID
-func (m *pgFlagImpl) GetFlagByID(ctx context.Context, id string) (model.FeatureFlag, error) {
+func (m *pgFlagImpl) GetFlagByID(ctx context.Context, id string) (model.FeatureFlag, daoErr.DaoError) {
 	var f dbmodel.FeatureFlag
 	err := m.conn.GetContext(ctx, &f, `SELECT * FROM feature_flags WHERE id = $1`, id)
 	if err != nil {
-		return model.FeatureFlag{}, err
+		return model.FeatureFlag{}, daoErr.WrapPostgresError(err)
 	}
 
 	var rules []dbmodel.Rule
@@ -76,48 +76,48 @@ func (m *pgFlagImpl) GetFlagByID(ctx context.Context, id string) (model.FeatureF
 		`SELECT * FROM rules WHERE feature_flag_id = $1 ORDER BY order_index`, f.ID)
 
 	if errRule != nil {
-		return model.FeatureFlag{}, errRule
+		return model.FeatureFlag{}, daoErr.WrapPostgresError(errRule)
 	}
 
 	convertedFlag, err := f.ToModelFeatureFlag(rules)
 	if err != nil {
-		return model.FeatureFlag{}, err
+		return model.FeatureFlag{}, daoErr.NewDaoError(daoErr.ConversionError, err)
 	}
 	return convertedFlag, nil
 }
 
 // GetFlagByName return a flag by its name
-func (m *pgFlagImpl) GetFlagByName(ctx context.Context, name string) (model.FeatureFlag, error) {
+func (m *pgFlagImpl) GetFlagByName(ctx context.Context, name string) (model.FeatureFlag, daoErr.DaoError) {
 	var f dbmodel.FeatureFlag
 	err := m.conn.GetContext(ctx, &f, `SELECT * FROM feature_flags WHERE name = $1`, name)
 	if err != nil {
-		return model.FeatureFlag{}, err
+		return model.FeatureFlag{}, daoErr.WrapPostgresError(err)
 	}
 
 	var rules []dbmodel.Rule
 	errRule := m.conn.SelectContext(ctx, &rules,
 		`SELECT * FROM rules WHERE feature_flag_id = $1 ORDER BY order_index DESC`, f.ID)
 	if errRule != nil {
-		return model.FeatureFlag{}, errRule
+		return model.FeatureFlag{}, daoErr.WrapPostgresError(errRule)
 	}
 
 	convertedFlag, err := f.ToModelFeatureFlag(rules)
 	if err != nil {
-		return model.FeatureFlag{}, err
+		return model.FeatureFlag{}, daoErr.NewDaoError(daoErr.ConversionError, err)
 	}
 	return convertedFlag, nil
 }
 
 // CreateFlag create a new flag, return the id of the flag
-func (m *pgFlagImpl) CreateFlag(ctx context.Context, flag model.FeatureFlag) (string, error) {
+func (m *pgFlagImpl) CreateFlag(ctx context.Context, flag model.FeatureFlag) (string, daoErr.DaoError) {
 	dbFeatureFlag, err := dbmodel.FromModelFeatureFlag(flag)
 	if err != nil {
-		return "", err
+		return "", daoErr.NewDaoError(daoErr.ConversionError, err)
 	}
 
 	tx, err := m.conn.Beginx()
 	if err != nil {
-		return "", err
+		return "", daoErr.WrapPostgresError(err)
 	}
 	defer func() { _ = tx.Commit() }()
 	_, err = tx.NamedExecContext(
@@ -153,16 +153,16 @@ func (m *pgFlagImpl) CreateFlag(ctx context.Context, flag model.FeatureFlag) (st
 		dbFeatureFlag)
 	if err != nil {
 		_ = tx.Rollback()
-		return "", err
+		return "", daoErr.WrapPostgresError(err)
 	}
 
 	if flag.DefaultRule == nil {
-		return "", fmt.Errorf("default rule is required")
+		return "", daoErr.NewDaoError(daoErr.DefaultRuleRequired, fmt.Errorf("default rule is required"))
 	}
 	err = m.insertRule(ctx, *flag.DefaultRule, true, dbFeatureFlag.ID, tx, -1)
 	if err != nil {
 		_ = tx.Rollback()
-		return "", err
+		return "", daoErr.WrapPostgresError(err)
 	}
 
 	if flag.Rules != nil {
@@ -170,7 +170,7 @@ func (m *pgFlagImpl) CreateFlag(ctx context.Context, flag model.FeatureFlag) (st
 			err = m.insertRule(ctx, rule, false, dbFeatureFlag.ID, tx, index)
 			if err != nil {
 				_ = tx.Rollback()
-				return "", err
+				return "", daoErr.WrapPostgresError(err)
 			}
 		}
 	}
@@ -178,19 +178,19 @@ func (m *pgFlagImpl) CreateFlag(ctx context.Context, flag model.FeatureFlag) (st
 	err = tx.Commit()
 	if err != nil {
 		_ = tx.Rollback()
-		return "", err
+		return "", daoErr.WrapPostgresError(err)
 	}
 	return dbFeatureFlag.ID.String(), nil
 }
 
-func (m *pgFlagImpl) UpdateFlag(ctx context.Context, flag model.FeatureFlag) error {
-	dbQuery, err := dbmodel.FromModelFeatureFlag(flag)
-	if err != nil {
-		return err
+func (m *pgFlagImpl) UpdateFlag(ctx context.Context, flag model.FeatureFlag) daoErr.DaoError {
+	dbQuery, errConv := dbmodel.FromModelFeatureFlag(flag)
+	if errConv != nil {
+		return daoErr.NewDaoError(daoErr.ConversionError, errConv)
 	}
 	tx, err := m.conn.Beginx()
 	if err != nil {
-		return err
+		return daoErr.WrapPostgresError(err)
 	}
 
 	flagOrder := map[string]int{}
@@ -198,19 +198,19 @@ func (m *pgFlagImpl) UpdateFlag(ctx context.Context, flag model.FeatureFlag) err
 		flagOrder[rule.ID] = i
 	}
 
-	dbFF, err := m.GetFlagByID(ctx, flag.ID)
-	if err != nil {
-		return err
+	dbFF, getFlagErr := m.GetFlagByID(ctx, flag.ID)
+	if getFlagErr != nil {
+		return getFlagErr
 	}
 
 	// update default rule
 	if flag.DefaultRule == nil {
-		return fmt.Errorf("default rule is required")
+		return daoErr.NewDaoError(daoErr.DefaultRuleRequired, fmt.Errorf("default rule is required"))
 	}
 
 	if err := m.updateRule(ctx, flag.GetDefaultRule(), true, dbQuery.ID, tx, -1); err != nil {
 		_ = tx.Rollback
-		return err
+		return daoErr.WrapPostgresError(err)
 	}
 
 	listExistingRuleIDs := make(map[string]model.Rule)
@@ -241,7 +241,7 @@ func (m *pgFlagImpl) UpdateFlag(ctx context.Context, flag model.FeatureFlag) err
 	for _, id := range toDelete {
 		if _, err := tx.ExecContext(ctx, `DELETE FROM rules WHERE id = $1`, id); err != nil {
 			_ = tx.Rollback
-			return err
+			return daoErr.WrapPostgresError(err)
 		}
 	}
 
@@ -249,7 +249,7 @@ func (m *pgFlagImpl) UpdateFlag(ctx context.Context, flag model.FeatureFlag) err
 		rule := listNewRuleIDs[id]
 		if err := m.insertRule(ctx, rule, false, dbQuery.ID, tx, flagOrder[dbQuery.ID.String()]); err != nil {
 			_ = tx.Rollback
-			return err
+			return daoErr.WrapPostgresError(err)
 		}
 	}
 
@@ -257,7 +257,7 @@ func (m *pgFlagImpl) UpdateFlag(ctx context.Context, flag model.FeatureFlag) err
 		rule := listNewRuleIDs[id]
 		if err = m.updateRule(ctx, rule, false, dbQuery.ID, tx, flagOrder[dbQuery.ID.String()]); err != nil {
 			_ = tx.Rollback
-			return err
+			return daoErr.WrapPostgresError(err)
 		}
 	}
 
@@ -278,30 +278,40 @@ func (m *pgFlagImpl) UpdateFlag(ctx context.Context, flag model.FeatureFlag) err
 				WHERE id = :id`,
 		dbQuery); err != nil {
 		_ = tx.Rollback
-		return errTx
+		return daoErr.WrapPostgresError(errTx)
 	}
 
-	return tx.Commit()
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		_ = tx.Rollback
+		return daoErr.WrapPostgresError(commitErr)
+	}
+	return nil
 }
 
-func (m *pgFlagImpl) DeleteFlagByID(ctx context.Context, id string) error {
+func (m *pgFlagImpl) DeleteFlagByID(ctx context.Context, id string) daoErr.DaoError {
 	tx, err := m.conn.Beginx()
 	if err != nil {
-		return err
+		return daoErr.WrapPostgresError(err)
 	}
 
 	_, err = tx.ExecContext(ctx, `DELETE FROM rules WHERE feature_flag_id = $1`, id)
 	if err != nil {
 		_ = tx.Rollback()
-		return err
+		return daoErr.WrapPostgresError(err)
 	}
 
 	_, err = tx.ExecContext(ctx, `DELETE FROM feature_flags WHERE id = $1`, id)
 	if err != nil {
 		_ = tx.Rollback()
-		return err
+		return daoErr.WrapPostgresError(err)
 	}
-	return tx.Commit()
+	commitErr := tx.Commit()
+	if commitErr != nil {
+		_ = tx.Rollback
+		return daoErr.WrapPostgresError(commitErr)
+	}
+	return nil
 }
 
 func (m *pgFlagImpl) insertRule(
@@ -383,9 +393,13 @@ func (m *pgFlagImpl) updateRule(
 	return errTx
 }
 
-func (m *pgFlagImpl) Ping() error {
+func (m *pgFlagImpl) Ping() daoErr.DaoError {
 	if m.conn == nil {
-		return errors.New("database connection is nil")
+		return daoErr.NewDaoError(daoErr.DatabaseNotInitialized, errors.New("database connection is nil"))
 	}
-	return m.conn.Ping()
+	err := m.conn.Ping()
+	if err != nil {
+		return daoErr.WrapPostgresError(err)
+	}
+	return nil
 }

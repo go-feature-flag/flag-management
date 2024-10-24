@@ -10,5 +10,5 @@ docker run --name goff --rm -e POSTGRES_PASSWORD=my-secret-pw -p 5432:5432 -e PO
 
 ```shell
 migrate -source "file:///Users/thomas.poignant/dev/thomaspoignant/app-api/database_migration" \
-    -database "postgres://goff-user:my-secret-pw@localhost:5432/gofeatureflag?sslmode=disable" down
+    -database "postgres://goff-user:my-secret-pw@localhost:5432/gofeatureflag?sslmode=disable" up
 ```
