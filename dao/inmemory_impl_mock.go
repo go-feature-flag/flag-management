@@ -22,6 +22,12 @@ type InMemoryMockDao struct {
 
 // GetFlags return all the flags
 func (m *InMemoryMockDao) GetFlags(ctx context.Context) ([]model.FeatureFlag, daoErr.DaoError) {
+	if ctx.Value("error") != nil {
+		if err, ok := ctx.Value("error").(daoErr.DaoErrorCode); ok {
+			return nil, daoErr.NewDaoError(err, fmt.Errorf("error on get flags"))
+		}
+		return nil, daoErr.NewDaoError(daoErr.UnknownError, fmt.Errorf("error on get flags"))
+	}
 	return m.flags, nil
 }
 
@@ -81,4 +87,8 @@ func (m *InMemoryMockDao) Ping() daoErr.DaoError {
 
 func (m *InMemoryMockDao) OnPingReturnError(v bool) {
 	m.errorOnPing = v
+}
+
+func (m *InMemoryMockDao) SetFlags(flags []model.FeatureFlag) {
+	m.flags = flags
 }
