@@ -3,6 +3,7 @@ package daoErr
 import (
 	"database/sql"
 	"errors"
+
 	"github.com/lib/pq"
 )
 

@@ -1,28 +1,37 @@
 package handler
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
-	daoErr "github.com/go-feature-flag/app-api/dao/err"
-	"github.com/labstack/echo/v4"
 	"net/http"
-	"time"
 
 	"github.com/go-feature-flag/app-api/dao"
+	daoErr "github.com/go-feature-flag/app-api/dao/err"
 	"github.com/go-feature-flag/app-api/model"
+	"github.com/go-feature-flag/app-api/util"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
+	"github.com/labstack/echo/v4"
 )
 
+type FlagAPIHandlerOptions struct {
+	Clock util.Clock
+}
+
 type FlagAPIHandler struct {
-	dao dao.Flags
+	dao     dao.Flags
+	options *FlagAPIHandlerOptions
 }
 
 // NewFlagAPIHandler creates a new instance of the FlagAPIHandler handler
 // It is a controller class to handle the feature flag configuration logic
-func NewFlagAPIHandler(dao dao.Flags) FlagAPIHandler {
-	return FlagAPIHandler{dao: dao}
+func NewFlagAPIHandler(dao dao.Flags, options *FlagAPIHandlerOptions) FlagAPIHandler {
+	if options == nil {
+		options = &FlagAPIHandlerOptions{}
+	}
+	if options.Clock == nil {
+		options.Clock = util.DefaultClock{}
+	}
+	return FlagAPIHandler{dao: dao, options: options}
 }
 
 // GetAllFeatureFlags is returning the list of all the flags
@@ -87,8 +96,8 @@ func (f FlagAPIHandler) CreateNewFlag(c echo.Context) error {
 	if flag.ID == "" {
 		flag.ID = uuid.NewString()
 	}
-	flag.CreatedDate = time.Now()
-	flag.LastUpdatedDate = time.Now()
+	flag.CreatedDate = f.options.Clock.Now()
+	flag.LastUpdatedDate = f.options.Clock.Now()
 	// TODO: remove this line and extract the information from the token
 	flag.LastModifiedBy = "toto"
 
@@ -105,6 +114,9 @@ func (f FlagAPIHandler) CreateNewFlag(c echo.Context) error {
 
 	id, err := f.dao.CreateFlag(c.Request().Context(), flag)
 	if err != nil {
+		if err.Code() == daoErr.ConversionError {
+			return c.JSON(model.NewHTTPError(http.StatusBadRequest, err))
+		}
 		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
 	}
 	flag.ID = id
@@ -123,8 +135,17 @@ func validateFlag(flag model.FeatureFlag) (int, error) {
 		return status, err
 	}
 
-	if flag.VariationType == "" {
+	switch flag.VariationType {
+	case model.FlagTypeBoolean,
+		model.FlagTypeDouble,
+		model.FlagTypeInteger,
+		model.FlagTypeString,
+		model.FlagTypeJSON:
+		break
+	case "":
 		return http.StatusBadRequest, errors.New("flag type is required")
+	default:
+		return http.StatusBadRequest, fmt.Errorf("flag type %s not supported", flag.VariationType)
 	}
 
 	for _, rule := range flag.GetRules() {
@@ -137,10 +158,15 @@ func validateFlag(flag model.FeatureFlag) (int, error) {
 }
 
 func validateRule(rule *model.Rule, isDefault bool) (int, error) {
-	if rule == nil ||
-		(rule.ProgressiveRollout == nil &&
-			rule.Percentages == nil &&
-			(rule.VariationResult == nil || *rule.VariationResult == "")) {
+	if rule == nil || *rule == (model.Rule{}) {
+		if isDefault {
+			return http.StatusBadRequest, errors.New("flag default rule is required")
+		}
+		return http.StatusBadRequest, errors.New("targeting rule is nil")
+	}
+	if rule.ProgressiveRollout == nil &&
+		rule.Percentages == nil &&
+		(rule.VariationResult == nil || *rule.VariationResult == "") {
 		err := fmt.Errorf("invalid rule %s", rule.Name)
 		if isDefault {
 			err = errors.New("flag default rule is invalid")
@@ -150,7 +176,7 @@ func validateRule(rule *model.Rule, isDefault bool) (int, error) {
 
 	if !isDefault {
 		if rule.Query == "" {
-			return http.StatusBadRequest, errors.New("rule query is required")
+			return http.StatusBadRequest, errors.New("query is required for targeting rules")
 		}
 	}
 	return http.StatusOK, nil
@@ -168,8 +194,7 @@ func validateRule(rule *model.Rule, isDefault bool) (int, error) {
 // @Failure      500 {object} model.HTTPError "Internal server error"
 // @Router       /v1/flags/{id} [put]
 func (f FlagAPIHandler) UpdateFlagByID(c echo.Context) error {
-	// check if the flag exists
-	_, err := f.dao.GetFlagByID(c.Request().Context(), c.Param("id"))
+	retrievedFlag, err := f.dao.GetFlagByID(c.Request().Context(), c.Param("id"))
 	if err != nil {
 		return f.handleDaoError(c, err)
 	}
@@ -187,11 +212,12 @@ func (f FlagAPIHandler) UpdateFlagByID(c echo.Context) error {
 	if flag.ID == "" {
 		flag.ID = c.Param("id")
 	}
-	flag.LastUpdatedDate = time.Now()
+	flag.LastUpdatedDate = f.options.Clock.Now()
+	flag.CreatedDate = retrievedFlag.CreatedDate
 
 	err = f.dao.UpdateFlag(c.Request().Context(), flag)
 	if err != nil {
-		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
+		return f.handleDaoError(c, err)
 	}
 	return c.JSON(http.StatusOK, flag)
 }
@@ -210,19 +236,7 @@ func (f FlagAPIHandler) DeleteFlagByID(c echo.Context) error {
 	idParam := c.Param("id")
 	err := f.dao.DeleteFlagByID(c.Request().Context(), idParam)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return c.JSON(model.NewHTTPError(http.StatusNotFound, fmt.Errorf("flag with id %s not found", idParam)))
-		}
-		var pgErr *pq.Error
-		if errors.As(err, &pgErr) {
-			switch pgErr.Code {
-			case "22P02":
-				return c.JSON(model.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid UUID format")))
-			default:
-				return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
-			}
-		}
-		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
+		return f.handleDaoError(c, err)
 	}
 	return c.JSON(http.StatusNoContent, nil)
 }
@@ -251,10 +265,10 @@ func (f FlagAPIHandler) UpdateFeatureFlagStatus(c echo.Context) error {
 	}
 
 	flag.Disable = &statusUpdate.Disable
-	flag.LastUpdatedDate = time.Now()
+	flag.LastUpdatedDate = f.options.Clock.Now()
 	err = f.dao.UpdateFlag(c.Request().Context(), flag)
 	if err != nil {
-		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
+		return f.handleDaoError(c, err)
 	}
 	return c.JSON(http.StatusOK, flag)
 }
@@ -263,7 +277,7 @@ func (f FlagAPIHandler) UpdateFeatureFlagStatus(c echo.Context) error {
 func (f FlagAPIHandler) handleDaoError(c echo.Context, err daoErr.DaoError) error {
 	switch err.Code() {
 	case daoErr.NotFound:
-		return c.JSON(model.NewHTTPError(http.StatusNotFound, fmt.Errorf("flag with id %s not found", c.Param("id"))))
+		return c.JSON(model.NewHTTPError(http.StatusNotFound, fmt.Errorf("flag not found")))
 	case daoErr.InvalidUUID:
 		return c.JSON(model.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid UUID format")))
 	default:

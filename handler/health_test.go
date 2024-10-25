@@ -1,13 +1,14 @@
 package handler
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/go-feature-flag/app-api/dao"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestHealthHandler_Health(t *testing.T) {
