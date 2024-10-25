@@ -37,7 +37,7 @@ type pgFlagImpl struct {
 // GetFlags return all the flags
 func (m *pgFlagImpl) GetFlags(ctx context.Context) ([]model.FeatureFlag, daoErr.DaoError) {
 	var f []dbmodel.FeatureFlag
-	err := m.conn.SelectContext(ctx, &f, "SELECT * FROM feature_flags")
+	err := m.conn.SelectContext(ctx, &f, "SELECT * FROM feature_flags ORDER BY last_updated_date DESC")
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return []model.FeatureFlag{}, nil
