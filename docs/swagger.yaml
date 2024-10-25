@@ -173,7 +173,7 @@ info:
     url: https://raw.githubusercontent.com/thomaspoignant/go-feature-flag/main/logo_128.png
 paths:
   /health:
-    post:
+    get:
       description: Check if the API is up and running and that the database is available.
       responses:
         "200":

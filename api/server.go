@@ -36,7 +36,7 @@ func (s *Server) Start() {
 	s.apiEcho.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
 
 	// init health routes
-	s.apiEcho.POST("/health", s.healthHandlers.Health)
+	s.apiEcho.GET("/health", s.healthHandlers.Health)
 
 	// init API routes
 	groupV1 := s.apiEcho.Group("/v1")

@@ -27,7 +27,7 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/health": {
-            "post": {
+            "get": {
                 "description": "Check if the API is up and running and that the database is available.",
                 "tags": [
                     "Feature Monitoring"

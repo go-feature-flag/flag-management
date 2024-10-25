@@ -28,7 +28,7 @@ type successResponse struct {
 // @Description  Check if the API is up and running and that the database is available.
 // @Success      200  {object} successResponse "Created"
 // @Failure      500 {object} model.HTTPError "Internal server error"
-// @Router       /health [post]
+// @Router       /health [get]
 func (f Health) Health(c echo.Context) error {
 	err := f.dao.Ping()
 	if err != nil {
