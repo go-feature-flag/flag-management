@@ -1,5 +1,7 @@
 # GO Feature Flag API - API to configure your feature flag
 ![WIP](https://img.shields.io/badge/status-%E2%9A%A0%EF%B8%8FWIP-red)
+[![Build](https://github.com/go-feature-flag/app-api/actions/workflows/ci.yaml/badge.svg)](https://github.com/go-feature-flag/app-api/actions/workflows/ci.yaml)
+[![codecov](https://codecov.io/github/go-feature-flag/app-api/graph/badge.svg?token=oqi5Ncgefx)](https://codecov.io/github/go-feature-flag/app-api)
 
 This repository is a work in progress initiative to create an API to manage your feature flags.
 
