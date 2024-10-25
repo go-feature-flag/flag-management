@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	daoErr "github.com/go-feature-flag/app-api/dao/err"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"time"
@@ -14,14 +15,14 @@ import (
 	"github.com/lib/pq"
 )
 
-type Flags struct {
+type FlagAPIHandler struct {
 	dao dao.Flags
 }
 
-// NewFlags creates a new instance of the Flags handler
+// NewFlagAPIHandler creates a new instance of the FlagAPIHandler handler
 // It is a controller class to handle the feature flag configuration logic
-func NewFlags(dao dao.Flags) Flags {
-	return Flags{dao: dao}
+func NewFlagAPIHandler(dao dao.Flags) FlagAPIHandler {
+	return FlagAPIHandler{dao: dao}
 }
 
 // GetAllFeatureFlags is returning the list of all the flags
@@ -31,7 +32,7 @@ func NewFlags(dao dao.Flags) Flags {
 // @Success      200  {object} []model.FeatureFlag "Success"
 // @Failure      500 {object} model.HTTPError "Internal server error"
 // @Router       /v1/flags [get]
-func (f Flags) GetAllFeatureFlags(c echo.Context) error {
+func (f FlagAPIHandler) GetAllFeatureFlags(c echo.Context) error {
 	flags, err := f.dao.GetFlags(c.Request().Context())
 	if err != nil {
 		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
@@ -48,22 +49,10 @@ func (f Flags) GetAllFeatureFlags(c echo.Context) error {
 // @Failure      404 {object} model.HTTPError "Not Found"
 // @Failure      500 {object} model.HTTPError "Internal server error"
 // @Router       /v1/flags/{id} [get]
-func (f Flags) GetFeatureFlagByID(c echo.Context) error {
+func (f FlagAPIHandler) GetFeatureFlagByID(c echo.Context) error {
 	flag, err := f.dao.GetFlagByID(c.Request().Context(), c.Param("id"))
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return c.JSON(model.NewHTTPError(http.StatusNotFound, fmt.Errorf("flag with id %s not found", c.Param("id"))))
-		}
-		var pgErr *pq.Error
-		if errors.As(err, &pgErr) {
-			switch pgErr.Code {
-			case "22P02":
-				return c.JSON(model.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid UUID format")))
-			default:
-				return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
-			}
-		}
-		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
+		return f.handleDaoError(c, err)
 	}
 	return c.JSON(http.StatusOK, flag)
 }
@@ -79,7 +68,7 @@ func (f Flags) GetFeatureFlagByID(c echo.Context) error {
 // @Failure      409 {object} model.HTTPError "Conflict - when trying to insert a flag with a name that already exists"
 // @Failure      500 {object} model.HTTPError "Internal server error"
 // @Router       /v1/flags [post]
-func (f Flags) CreateNewFlag(c echo.Context) error {
+func (f FlagAPIHandler) CreateNewFlag(c echo.Context) error {
 	var flag model.FeatureFlag
 	if err := c.Bind(&flag); err != nil {
 		return c.JSON(model.NewHTTPError(http.StatusBadRequest, err))
@@ -90,7 +79,7 @@ func (f Flags) CreateNewFlag(c echo.Context) error {
 	if err == nil {
 		return c.JSON(model.NewHTTPError(http.StatusConflict, fmt.Errorf("flag with name %s already exists", flag.Name)))
 	}
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err != nil && err.Code() != daoErr.NotFound {
 		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
 	}
 
@@ -103,6 +92,9 @@ func (f Flags) CreateNewFlag(c echo.Context) error {
 	// TODO: remove this line and extract the information from the token
 	flag.LastModifiedBy = "toto"
 
+	if code, err := validateFlag(flag); err != nil {
+		return c.JSON(model.NewHTTPError(code, err))
+	}
 	/**
 	TODO: Add a validation layer here, it should check:
 	- the flag name is not empty
@@ -121,6 +113,49 @@ func (f Flags) CreateNewFlag(c echo.Context) error {
 	return c.JSON(http.StatusCreated, flag)
 }
 
+func validateFlag(flag model.FeatureFlag) (int, error) {
+	// Check if the flag name is valid
+	if flag.Name == "" {
+		return http.StatusBadRequest, errors.New("flag name is required")
+	}
+
+	if status, err := validateRule(flag.DefaultRule, true); err != nil {
+		return status, err
+	}
+
+	if flag.VariationType == "" {
+		return http.StatusBadRequest, errors.New("flag type is required")
+	}
+
+	for _, rule := range flag.GetRules() {
+		if status, err := validateRule(&rule, false); err != nil {
+			return status, err
+		}
+	}
+
+	return http.StatusOK, nil
+}
+
+func validateRule(rule *model.Rule, isDefault bool) (int, error) {
+	if rule == nil ||
+		(rule.ProgressiveRollout == nil &&
+			rule.Percentages == nil &&
+			(rule.VariationResult == nil || *rule.VariationResult == "")) {
+		err := fmt.Errorf("invalid rule %s", rule.Name)
+		if isDefault {
+			err = errors.New("flag default rule is invalid")
+		}
+		return http.StatusBadRequest, err
+	}
+
+	if !isDefault {
+		if rule.Query == "" {
+			return http.StatusBadRequest, errors.New("rule query is required")
+		}
+	}
+	return http.StatusOK, nil
+}
+
 // UpdateFlagByID is updating the flag with the given ID
 // @Summary      Updates the flag with the given ID
 // @Tags Feature Flag management API
@@ -132,23 +167,11 @@ func (f Flags) CreateNewFlag(c echo.Context) error {
 // @Failure      404 {object} model.HTTPError "Not Found"
 // @Failure      500 {object} model.HTTPError "Internal server error"
 // @Router       /v1/flags/{id} [put]
-func (f Flags) UpdateFlagByID(c echo.Context) error {
+func (f FlagAPIHandler) UpdateFlagByID(c echo.Context) error {
 	// check if the flag exists
 	_, err := f.dao.GetFlagByID(c.Request().Context(), c.Param("id"))
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return c.JSON(model.NewHTTPError(http.StatusNotFound, fmt.Errorf("flag with id %s not found", c.Param("id"))))
-		}
-		var pgErr *pq.Error
-		if errors.As(err, &pgErr) {
-			switch pgErr.Code {
-			case "22P02":
-				return c.JSON(model.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid UUID format")))
-			default:
-				return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
-			}
-		}
-		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
+		return f.handleDaoError(c, err)
 	}
 
 	// update the flag
@@ -157,7 +180,9 @@ func (f Flags) UpdateFlagByID(c echo.Context) error {
 		return c.JSON(model.NewHTTPError(http.StatusBadRequest, err))
 	}
 
-	// TODO: Add same checks as in CreateNewFlag
+	if code, err := validateFlag(flag); err != nil {
+		return c.JSON(model.NewHTTPError(code, err))
+	}
 
 	if flag.ID == "" {
 		flag.ID = c.Param("id")
@@ -181,7 +206,7 @@ func (f Flags) UpdateFlagByID(c echo.Context) error {
 // @Failure      404 {object} model.HTTPError "Not Found"
 // @Failure      500 {object} model.HTTPError "Internal server error"
 // @Router       /v1/flags/{id} [delete]
-func (f Flags) DeleteFlagByID(c echo.Context) error {
+func (f FlagAPIHandler) DeleteFlagByID(c echo.Context) error {
 	idParam := c.Param("id")
 	err := f.dao.DeleteFlagByID(c.Request().Context(), idParam)
 	if err != nil {
@@ -213,23 +238,11 @@ func (f Flags) DeleteFlagByID(c echo.Context) error {
 // @Failure      404 {object} model.HTTPError "Not Found"
 // @Failure      500 {object} model.HTTPError "Internal server error"
 // @Router       /v1/flags/{id}/status [patch]
-func (f Flags) UpdateFeatureFlagStatus(c echo.Context) error {
+func (f FlagAPIHandler) UpdateFeatureFlagStatus(c echo.Context) error {
 	idParam := c.Param("id")
 	flag, err := f.dao.GetFlagByID(c.Request().Context(), idParam)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return c.JSON(model.NewHTTPError(http.StatusNotFound, fmt.Errorf("flag with id %s not found", idParam)))
-		}
-		var pgErr *pq.Error
-		if errors.As(err, &pgErr) {
-			switch pgErr.Code {
-			case "22P02":
-				return c.JSON(model.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid UUID format")))
-			default:
-				return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
-			}
-		}
-		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
+		return f.handleDaoError(c, err)
 	}
 
 	var statusUpdate model.FeatureFlagStatusUpdate
@@ -244,4 +257,16 @@ func (f Flags) UpdateFeatureFlagStatus(c echo.Context) error {
 		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
 	}
 	return c.JSON(http.StatusOK, flag)
+}
+
+// handleDaoError is a helper function to handle the dao errors and return the correct HTTP status code.
+func (f FlagAPIHandler) handleDaoError(c echo.Context, err daoErr.DaoError) error {
+	switch err.Code() {
+	case daoErr.NotFound:
+		return c.JSON(model.NewHTTPError(http.StatusNotFound, fmt.Errorf("flag with id %s not found", c.Param("id"))))
+	case daoErr.InvalidUUID:
+		return c.JSON(model.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid UUID format")))
+	default:
+		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
+	}
 }

@@ -9,7 +9,7 @@ import (
 )
 
 // New creates a new instance of the API server
-func New(serverAddress string, flagHandlers handler.Flags, healthHandlers handler.Health) *Server {
+func New(serverAddress string, flagHandlers handler.FlagAPIHandler, healthHandlers handler.Health) *Server {
 	return &Server{
 		flagHandlers:   flagHandlers,
 		healthHandlers: healthHandlers,
@@ -20,7 +20,7 @@ func New(serverAddress string, flagHandlers handler.Flags, healthHandlers handle
 
 // Server is the struct that represents the API server
 type Server struct {
-	flagHandlers   handler.Flags
+	flagHandlers   handler.FlagAPIHandler
 	healthHandlers handler.Health
 	apiEcho        *echo.Echo
 	serverAddress  string

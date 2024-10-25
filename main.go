@@ -26,7 +26,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	flagHandlers := handler.NewFlags(data)
+	flagHandlers := handler.NewFlagAPIHandler(data)
 	healthHandlers := handler.NewHealth(data)
 
 	apiServer := api.New(":3001", flagHandlers, healthHandlers)
