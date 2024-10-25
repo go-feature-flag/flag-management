@@ -33,6 +33,12 @@ func (m *InMemoryMockDao) GetFlags(ctx context.Context) ([]model.FeatureFlag, da
 
 // GetFlagByID return a flag by its ID
 func (m *InMemoryMockDao) GetFlagByID(ctx context.Context, id string) (model.FeatureFlag, daoErr.DaoError) {
+	if ctx.Value("error") != nil {
+		if err, ok := ctx.Value("error").(daoErr.DaoErrorCode); ok {
+			return model.FeatureFlag{}, daoErr.NewDaoError(err, fmt.Errorf("error on get flag by id"))
+		}
+		return model.FeatureFlag{}, daoErr.NewDaoError(daoErr.UnknownError, fmt.Errorf("error on get flag by id"))
+	}
 	for _, flag := range m.flags {
 		if flag.ID == id {
 			return flag, nil
@@ -43,6 +49,12 @@ func (m *InMemoryMockDao) GetFlagByID(ctx context.Context, id string) (model.Fea
 
 // GetFlagByName return a flag by its name
 func (m *InMemoryMockDao) GetFlagByName(ctx context.Context, name string) (model.FeatureFlag, daoErr.DaoError) {
+	if ctx.Value("error") != nil {
+		if err, ok := ctx.Value("error").(daoErr.DaoErrorCode); ok {
+			return model.FeatureFlag{}, daoErr.NewDaoError(err, fmt.Errorf("error on get flag by name"))
+		}
+		return model.FeatureFlag{}, daoErr.NewDaoError(daoErr.UnknownError, fmt.Errorf("error on get flag by name"))
+	}
 	for _, flag := range m.flags {
 		if flag.Name == name {
 			return flag, nil
@@ -53,6 +65,13 @@ func (m *InMemoryMockDao) GetFlagByName(ctx context.Context, name string) (model
 
 // CreateFlag create a new flag, return the id of the flag
 func (m *InMemoryMockDao) CreateFlag(ctx context.Context, flag model.FeatureFlag) (string, daoErr.DaoError) {
+	if ctx.Value("error_create") != nil {
+		if err, ok := ctx.Value("error_create").(daoErr.DaoErrorCode); ok {
+			return "", daoErr.NewDaoError(err, fmt.Errorf("error creating flag"))
+		}
+		return "", daoErr.NewDaoError(daoErr.UnknownError, fmt.Errorf("error creating flag"))
+	}
+
 	m.flags = append(m.flags, flag)
 	return flag.ID, nil
 }
