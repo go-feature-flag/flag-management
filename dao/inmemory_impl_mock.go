@@ -3,6 +3,7 @@ package dao
 import (
 	"context"
 	"fmt"
+
 	daoErr "github.com/go-feature-flag/app-api/dao/err"
 	"github.com/go-feature-flag/app-api/model"
 	_ "github.com/lib/pq" // we import the driver used by sqlx
@@ -77,6 +78,12 @@ func (m *InMemoryMockDao) CreateFlag(ctx context.Context, flag model.FeatureFlag
 }
 
 func (m *InMemoryMockDao) UpdateFlag(ctx context.Context, flag model.FeatureFlag) daoErr.DaoError {
+	if ctx.Value("error_update") != nil {
+		if err, ok := ctx.Value("error_update").(daoErr.DaoErrorCode); ok {
+			return daoErr.NewDaoError(err, fmt.Errorf("error on update flags"))
+		}
+		return daoErr.NewDaoError(daoErr.UnknownError, fmt.Errorf("error on update flags"))
+	}
 	for index, f := range m.flags {
 		if f.ID == flag.ID {
 			m.flags[index] = flag
@@ -87,6 +94,13 @@ func (m *InMemoryMockDao) UpdateFlag(ctx context.Context, flag model.FeatureFlag
 }
 
 func (m *InMemoryMockDao) DeleteFlagByID(ctx context.Context, id string) daoErr.DaoError {
+	if ctx.Value("error_delete") != nil {
+		if err, ok := ctx.Value("error_delete").(daoErr.DaoErrorCode); ok {
+			return daoErr.NewDaoError(err, fmt.Errorf("error on get flags"))
+		}
+		return daoErr.NewDaoError(daoErr.UnknownError, fmt.Errorf("error on get flags"))
+	}
+
 	newInmemoryFlagList := []model.FeatureFlag{}
 	for _, f := range m.flags {
 		if f.ID != id {

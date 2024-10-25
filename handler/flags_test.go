@@ -5,6 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
 	"github.com/go-feature-flag/app-api/dao"
 	daoErr "github.com/go-feature-flag/app-api/dao/err"
 	"github.com/go-feature-flag/app-api/handler"
@@ -13,11 +19,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-	"time"
 )
 
 func TestFlagsHandler_GetAllFeatureFlags(t *testing.T) {
@@ -41,7 +42,7 @@ func TestFlagsHandler_GetAllFeatureFlags(t *testing.T) {
 			ctx:              context.Background(),
 			expectedHTTPCode: http.StatusOK,
 			flags:            defaultInMemoryFlags(),
-			expectedBody:     "[{\"id\":\"926214f3-80c1-46e6-a913-b2d40b92a932\",\"name\":\"flag1\",\"createdDate\":\"2024-10-25T11:50:27Z\",\"lastUpdatedDate\":\"2024-10-25T11:50:27Z\",\"LastModifiedBy\":\"foo\",\"description\":\"description1\",\"type\":\"string\",\"variations\":{\"variation1\":\"A\",\"variation2\":\"B\"},\"defaultRule\":{\"id\":\"\",\"variation\":\"variation1\"}}]\n",
+			expectedBody:     `[{"id":"926214f3-80c1-46e6-a913-b2d40b92a932","name":"flag1","createdDate":"2024-10-25T11:50:27Z","lastUpdatedDate":"2024-10-25T11:50:27Z","LastModifiedBy":"foo","description":"description1","type":"string","variations":{"variation1":"A","variation2":"B"},"defaultRule":{"id":"","variation":"variation1"}},{"id":"926214f3-80c1-46e6-a913-b2d40b92a111","name":"flagr6w8","createdDate":"2024-10-25T11:50:27Z","lastUpdatedDate":"2024-10-25T11:50:27Z","LastModifiedBy":"foo","description":"description1","type":"string","variations":{"variation1":"A","variation2":"B"},"defaultRule":{"id":"","variation":"variation1"}},{"id":"926214f3-80c1-46e6-a913-b2d40b92a222","name":"flagr576987209","createdDate":"2024-10-25T11:50:27Z","lastUpdatedDate":"2024-10-25T11:50:27Z","LastModifiedBy":"foo","description":"description1","type":"string","variations":{"variation1":"A","variation2":"B"},"defaultRule":{"id":"","variation":"variation1"}}]`,
 		},
 		{
 			name:             "should return a 500 if an error occured ",
@@ -551,11 +552,359 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 	}
 }
 
+func TestFlagsHandler_DeleteFlagByID(t *testing.T) {
+	type test struct {
+		name                  string
+		ctx                   context.Context
+		flags                 []model.FeatureFlag
+		id                    string
+		expectedHTTPCode      int
+		expectedBody          string
+		expectedNumberOfFlags int
+	}
+	tests := []test{
+		{
+			name:             "should return an error if the id is not a valid UUID",
+			ctx:              context.WithValue(context.Background(), "error_delete", daoErr.InvalidUUID),
+			expectedHTTPCode: http.StatusBadRequest,
+			flags:            defaultInMemoryFlags(),
+			expectedBody:     `{"errorDetails":"invalid UUID format","code":400}`,
+			id:               "invalidUUID",
+		},
+		{
+			name:                  "should not return an error if the id does not exist",
+			ctx:                   context.Background(),
+			expectedHTTPCode:      http.StatusNoContent,
+			flags:                 defaultInMemoryFlags(),
+			id:                    "926214f3-80c1-46e6-a913-b2d40b92a000",
+			expectedNumberOfFlags: 3,
+		},
+		{
+			name:                  "should not return an error if a real id is provided",
+			ctx:                   context.Background(),
+			expectedHTTPCode:      http.StatusNoContent,
+			flags:                 defaultInMemoryFlags(),
+			id:                    "926214f3-80c1-46e6-a913-b2d40b92a932",
+			expectedNumberOfFlags: 2,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := echo.New()
+			mockDao, err := dao.NewInMemoryMockDao()
+			require.NoError(t, err)
+			mockDao.SetFlags(tt.flags)
+			h := handler.NewFlagAPIHandler(mockDao, nil)
+			req := httptest.NewRequestWithContext(
+				tt.ctx, http.MethodDelete, "/v1/flags/:id", nil)
+
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
+			c.SetParamNames("id")
+			c.SetParamValues(tt.id)
+			require.NoError(t, h.DeleteFlagByID(c))
+
+			assert.Equal(t, tt.expectedHTTPCode, rec.Code)
+			if rec.Code == http.StatusNoContent {
+				flagAfterDelete, err := mockDao.GetFlags(tt.ctx)
+				require.NoError(t, err)
+				assert.Equal(t, tt.expectedNumberOfFlags, len(flagAfterDelete))
+			} else {
+				assert.JSONEq(t, tt.expectedBody, rec.Body.String())
+			}
+		})
+	}
+}
+
+func TestFlagsHandler_UpdateFlagByID(t *testing.T) {
+	type test struct {
+		name                string
+		ctx                 context.Context
+		flags               []model.FeatureFlag
+		updatedFlag         model.FeatureFlag
+		updatedFlagAsString string
+		id                  string
+		expectedHTTPCode    int
+		expectedBody        string
+	}
+	tests := []test{
+		{
+			name:             "should return a 400 if id is not a valid UUID",
+			ctx:              context.WithValue(context.Background(), "error_update", daoErr.InvalidUUID),
+			expectedHTTPCode: http.StatusBadRequest,
+			flags:            defaultInMemoryFlags(),
+			expectedBody:     `{"errorDetails":"invalid UUID format","code":400}`,
+			id:               "926214f3-80c1-46e6-a913-b2d40b92a932",
+			updatedFlag: model.FeatureFlag{
+				Name:        "flag1",
+				Description: testutils.String("description1"),
+				Variations: &map[string]*interface{}{
+					"variation1": testutils.Interface("A"),
+					"variation2": testutils.Interface("B"),
+				},
+				VariationType:   "string",
+				LastModifiedBy:  "foo",
+				LastUpdatedDate: time.Date(2024, 10, 25, 11, 50, 27, 0, time.UTC),
+				CreatedDate:     time.Date(2024, 10, 25, 11, 50, 27, 0, time.UTC),
+				DefaultRule: &model.Rule{
+					VariationResult: testutils.String("variation1"),
+				},
+			},
+		},
+		{
+			name:             "should return a 404 if id does not exist",
+			ctx:              context.Background(),
+			expectedHTTPCode: http.StatusNotFound,
+			flags:            defaultInMemoryFlags(),
+			expectedBody:     `{"errorDetails":"flag not found","code":404}`,
+			id:               "926214f3-80c1-46e6-a913-b2d40b92aaaa",
+			updatedFlag: model.FeatureFlag{
+				Name:        "flag1",
+				Description: testutils.String("description1"),
+				Variations: &map[string]*interface{}{
+					"variation1": testutils.Interface("A"),
+					"variation2": testutils.Interface("B"),
+				},
+				VariationType:   "string",
+				LastModifiedBy:  "foo",
+				LastUpdatedDate: time.Date(2024, 10, 25, 11, 50, 27, 0, time.UTC),
+				CreatedDate:     time.Date(2024, 10, 25, 11, 50, 27, 0, time.UTC),
+				DefaultRule: &model.Rule{
+					VariationResult: testutils.String("variation1"),
+				},
+			},
+		},
+		{
+			name:                "should return a 400 if json is malformed",
+			ctx:                 context.Background(),
+			expectedHTTPCode:    http.StatusBadRequest,
+			flags:               defaultInMemoryFlags(),
+			expectedBody:        `{"errorDetails":"code=400, message=unexpected EOF, internal=unexpected EOF","code":400}`,
+			id:                  "926214f3-80c1-46e6-a913-b2d40b92a932",
+			updatedFlagAsString: "{",
+		},
+		{
+			name:             "should return a 200 if flag is modified",
+			ctx:              context.Background(),
+			expectedHTTPCode: http.StatusOK,
+			flags:            defaultInMemoryFlags(),
+			expectedBody:     `{"id":"926214f3-80c1-46e6-a913-b2d40b92a932","name":"flag1","createdDate":"2024-10-25T11:50:27Z","lastUpdatedDate":"2020-01-01T00:00:00Z","LastModifiedBy":"foo","description":"description1","type":"string","variations":{"variation1":"C","variation2":"D"},"defaultRule":{"id":"","variation":"variation1"}}`,
+			id:               "926214f3-80c1-46e6-a913-b2d40b92a932",
+			updatedFlag: model.FeatureFlag{
+				ID:          "926214f3-80c1-46e6-a913-b2d40b92a932",
+				Name:        "flag1",
+				Description: testutils.String("description1"),
+				Variations: &map[string]*interface{}{
+					"variation1": testutils.Interface("C"),
+					"variation2": testutils.Interface("D"),
+				},
+				VariationType:  "string",
+				LastModifiedBy: "foo",
+				DefaultRule: &model.Rule{
+					VariationResult: testutils.String("variation1"),
+				},
+			},
+		},
+		{
+			name:             "should return a 200 if flag is modified with no ID in body",
+			ctx:              context.Background(),
+			expectedHTTPCode: http.StatusOK,
+			flags:            defaultInMemoryFlags(),
+			expectedBody:     `{"id":"926214f3-80c1-46e6-a913-b2d40b92a932","name":"flag1","createdDate":"2024-10-25T11:50:27Z","lastUpdatedDate":"2020-01-01T00:00:00Z","LastModifiedBy":"foo","description":"description1","type":"string","variations":{"variation1":"C","variation2":"D"},"defaultRule":{"id":"","variation":"variation1"}}`,
+			id:               "926214f3-80c1-46e6-a913-b2d40b92a932",
+			updatedFlag: model.FeatureFlag{
+				Name:        "flag1",
+				Description: testutils.String("description1"),
+				Variations: &map[string]*interface{}{
+					"variation1": testutils.Interface("C"),
+					"variation2": testutils.Interface("D"),
+				},
+				VariationType:  "string",
+				LastModifiedBy: "foo",
+				DefaultRule: &model.Rule{
+					VariationResult: testutils.String("variation1"),
+				},
+			},
+		},
+		{
+			name:             "should return a 400 if modified flag is not valid (test without name)",
+			ctx:              context.Background(),
+			expectedHTTPCode: http.StatusBadRequest,
+			flags:            defaultInMemoryFlags(),
+			expectedBody:     `{"errorDetails":"flag name is required","code":400}`,
+			id:               "926214f3-80c1-46e6-a913-b2d40b92a932",
+			updatedFlag: model.FeatureFlag{
+				Description: testutils.String("description1"),
+				Variations: &map[string]*interface{}{
+					"variation1": testutils.Interface("C"),
+					"variation2": testutils.Interface("D"),
+				},
+				VariationType:  "string",
+				LastModifiedBy: "foo",
+				DefaultRule: &model.Rule{
+					VariationResult: testutils.String("variation1"),
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := echo.New()
+			mockDao, err := dao.NewInMemoryMockDao()
+			require.NoError(t, err)
+			mockDao.SetFlags(tt.flags)
+			options := &handler.FlagAPIHandlerOptions{
+				Clock: testutils.ClockMock{},
+			}
+			h := handler.NewFlagAPIHandler(mockDao, options)
+
+			var body io.Reader
+			if tt.updatedFlagAsString != "" {
+				body = bytes.NewReader([]byte(tt.updatedFlagAsString))
+			} else {
+				b, err := json.Marshal(tt.updatedFlag)
+				require.NoError(t, err)
+				body = bytes.NewReader(b)
+			}
+
+			req := httptest.NewRequestWithContext(
+				tt.ctx, http.MethodPut, "/v1/flags/:id", body)
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
+			c.SetParamNames("id")
+			c.SetParamValues(tt.id)
+			require.NoError(t, h.UpdateFlagByID(c))
+			fmt.Println(rec.Body.String())
+			assert.JSONEq(t, tt.expectedBody, rec.Body.String())
+			assert.Equal(t, tt.expectedHTTPCode, rec.Code)
+		})
+	}
+}
+
+func TestFlagsHandler_UpdateFeatureFlagStatus(t *testing.T) {
+	type test struct {
+		name             string
+		ctx              context.Context
+		flags            []model.FeatureFlag
+		body             string
+		id               string
+		expectedHTTPCode int
+		expectedBody     string
+	}
+	tests := []test{
+		{
+			name:             "should return a 200 if status updated (disabled)",
+			ctx:              context.Background(),
+			expectedHTTPCode: http.StatusOK,
+			flags:            defaultInMemoryFlags(),
+			body:             `{"disable": true}`,
+			expectedBody:     `{"id":"926214f3-80c1-46e6-a913-b2d40b92a932","name":"flag1","createdDate":"2024-10-25T11:50:27Z","lastUpdatedDate":"2020-01-01T00:00:00Z","LastModifiedBy":"foo","description":"description1","type":"string","variations":{"variation1":"A","variation2":"B"},"defaultRule":{"id":"","variation":"variation1"},"disable":true}`,
+			id:               "926214f3-80c1-46e6-a913-b2d40b92a932",
+		},
+		{
+			name:             "should return a 200 if status updated (enabled)",
+			ctx:              context.Background(),
+			expectedHTTPCode: http.StatusOK,
+			flags:            defaultInMemoryFlags(),
+			body:             `{"disable": false}`,
+			expectedBody:     `{"id":"926214f3-80c1-46e6-a913-b2d40b92a932","name":"flag1","createdDate":"2024-10-25T11:50:27Z","lastUpdatedDate":"2020-01-01T00:00:00Z","LastModifiedBy":"foo","description":"description1","type":"string","variations":{"variation1":"A","variation2":"B"},"defaultRule":{"id":"","variation":"variation1"},"disable":false}`,
+			id:               "926214f3-80c1-46e6-a913-b2d40b92a932",
+		},
+		{
+			name:             "should return a 404 if flag does not exist",
+			ctx:              context.Background(),
+			expectedHTTPCode: http.StatusNotFound,
+			flags:            defaultInMemoryFlags(),
+			body:             `{"disable": false}`,
+			expectedBody:     `{"errorDetails":"flag not found","code":404}`,
+			id:               "926214f3-80c1-46e6-a913-b2d40b92aaaa",
+		},
+		{
+			name:             "should return a 400 if body is not a valid json",
+			ctx:              context.Background(),
+			expectedHTTPCode: http.StatusBadRequest,
+			flags:            defaultInMemoryFlags(),
+			body:             `{"disable": false`,
+			expectedBody:     `{"errorDetails":"code=400, message=unexpected EOF, internal=unexpected EOF","code":400}`,
+			id:               "926214f3-80c1-46e6-a913-b2d40b92a932",
+		},
+		{
+			name:             "should return a 500 if db not available",
+			ctx:              context.WithValue(context.Background(), "error_update", daoErr.DatabaseNotInitialized),
+			expectedHTTPCode: http.StatusInternalServerError,
+			flags:            defaultInMemoryFlags(),
+			body:             `{"disable": false}`,
+			expectedBody:     `{"errorDetails":"error on update flags","code":500}`,
+			id:               "926214f3-80c1-46e6-a913-b2d40b92a932",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := echo.New()
+			mockDao, err := dao.NewInMemoryMockDao()
+			require.NoError(t, err)
+			mockDao.SetFlags(tt.flags)
+			options := &handler.FlagAPIHandlerOptions{
+				Clock: testutils.ClockMock{},
+			}
+			h := handler.NewFlagAPIHandler(mockDao, options)
+			req := httptest.NewRequestWithContext(
+				tt.ctx, http.MethodPut, "/v1/flags/:id/status", bytes.NewReader([]byte(tt.body)))
+			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
+			c.SetParamNames("id")
+			c.SetParamValues(tt.id)
+			require.NoError(t, h.UpdateFeatureFlagStatus(c))
+			// TODO: delete 👇
+			fmt.Println(rec.Body.String())
+			assert.JSONEq(t, tt.expectedBody, rec.Body.String())
+			assert.Equal(t, tt.expectedHTTPCode, rec.Code)
+		})
+	}
+}
+
 func defaultInMemoryFlags() []model.FeatureFlag {
 	return []model.FeatureFlag{
 		{
 			ID:          "926214f3-80c1-46e6-a913-b2d40b92a932",
 			Name:        "flag1",
+			Description: testutils.String("description1"),
+			Variations: &map[string]*interface{}{
+				"variation1": testutils.Interface("A"),
+				"variation2": testutils.Interface("B"),
+			},
+			VariationType:   "string",
+			LastModifiedBy:  "foo",
+			LastUpdatedDate: time.Date(2024, 10, 25, 11, 50, 27, 0, time.UTC),
+			CreatedDate:     time.Date(2024, 10, 25, 11, 50, 27, 0, time.UTC),
+			DefaultRule: &model.Rule{
+				VariationResult: testutils.String("variation1"),
+			},
+		},
+		{
+			ID:          "926214f3-80c1-46e6-a913-b2d40b92a111",
+			Name:        "flagr6w8",
+			Description: testutils.String("description1"),
+			Variations: &map[string]*interface{}{
+				"variation1": testutils.Interface("A"),
+				"variation2": testutils.Interface("B"),
+			},
+			VariationType:   "string",
+			LastModifiedBy:  "foo",
+			LastUpdatedDate: time.Date(2024, 10, 25, 11, 50, 27, 0, time.UTC),
+			CreatedDate:     time.Date(2024, 10, 25, 11, 50, 27, 0, time.UTC),
+			DefaultRule: &model.Rule{
+				VariationResult: testutils.String("variation1"),
+			},
+		},
+		{
+			ID:          "926214f3-80c1-46e6-a913-b2d40b92a222",
+			Name:        "flagr576987209",
 			Description: testutils.String("description1"),
 			Variations: &map[string]*interface{}{
 				"variation1": testutils.Interface("A"),

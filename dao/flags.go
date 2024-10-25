@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+
 	daoErr "github.com/go-feature-flag/app-api/dao/err"
 	"github.com/go-feature-flag/app-api/model"
 )

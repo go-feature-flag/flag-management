@@ -1,19 +1,16 @@
 package handler
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
-	daoErr "github.com/go-feature-flag/app-api/dao/err"
-	"github.com/go-feature-flag/app-api/util"
-	"github.com/labstack/echo/v4"
 	"net/http"
-	"time"
 
 	"github.com/go-feature-flag/app-api/dao"
+	daoErr "github.com/go-feature-flag/app-api/dao/err"
 	"github.com/go-feature-flag/app-api/model"
+	"github.com/go-feature-flag/app-api/util"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
+	"github.com/labstack/echo/v4"
 )
 
 type FlagAPIHandlerOptions struct {
@@ -197,8 +194,7 @@ func validateRule(rule *model.Rule, isDefault bool) (int, error) {
 // @Failure      500 {object} model.HTTPError "Internal server error"
 // @Router       /v1/flags/{id} [put]
 func (f FlagAPIHandler) UpdateFlagByID(c echo.Context) error {
-	// check if the flag exists
-	_, err := f.dao.GetFlagByID(c.Request().Context(), c.Param("id"))
+	retrievedFlag, err := f.dao.GetFlagByID(c.Request().Context(), c.Param("id"))
 	if err != nil {
 		return f.handleDaoError(c, err)
 	}
@@ -216,11 +212,12 @@ func (f FlagAPIHandler) UpdateFlagByID(c echo.Context) error {
 	if flag.ID == "" {
 		flag.ID = c.Param("id")
 	}
-	flag.LastUpdatedDate = time.Now()
+	flag.LastUpdatedDate = f.options.Clock.Now()
+	flag.CreatedDate = retrievedFlag.CreatedDate
 
 	err = f.dao.UpdateFlag(c.Request().Context(), flag)
 	if err != nil {
-		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
+		return f.handleDaoError(c, err)
 	}
 	return c.JSON(http.StatusOK, flag)
 }
@@ -239,19 +236,7 @@ func (f FlagAPIHandler) DeleteFlagByID(c echo.Context) error {
 	idParam := c.Param("id")
 	err := f.dao.DeleteFlagByID(c.Request().Context(), idParam)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return c.JSON(model.NewHTTPError(http.StatusNotFound, fmt.Errorf("flag with id %s not found", idParam)))
-		}
-		var pgErr *pq.Error
-		if errors.As(err, &pgErr) {
-			switch pgErr.Code {
-			case "22P02":
-				return c.JSON(model.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid UUID format")))
-			default:
-				return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
-			}
-		}
-		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
+		return f.handleDaoError(c, err)
 	}
 	return c.JSON(http.StatusNoContent, nil)
 }
@@ -280,10 +265,10 @@ func (f FlagAPIHandler) UpdateFeatureFlagStatus(c echo.Context) error {
 	}
 
 	flag.Disable = &statusUpdate.Disable
-	flag.LastUpdatedDate = time.Now()
+	flag.LastUpdatedDate = f.options.Clock.Now()
 	err = f.dao.UpdateFlag(c.Request().Context(), flag)
 	if err != nil {
-		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
+		return f.handleDaoError(c, err)
 	}
 	return c.JSON(http.StatusOK, flag)
 }
