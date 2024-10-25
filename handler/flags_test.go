@@ -41,7 +41,7 @@ func TestFlagsHandler_GetAllFeatureFlags(t *testing.T) {
 			ctx:              context.Background(),
 			expectedHTTPCode: http.StatusOK,
 			flags:            defaultInMemoryFlags(),
-			expectedBody:     "[{\"id\":\"926214f3-80c1-46e6-a913-b2d40b92a932\",\"name\":\"flag1\",\"createdDate\":\"2024-10-25T11:50:27+02:00\",\"lastUpdatedDate\":\"2024-10-25T11:50:27+02:00\",\"LastModifiedBy\":\"foo\",\"description\":\"description1\",\"type\":\"string\",\"variations\":{\"variation1\":\"A\",\"variation2\":\"B\"},\"defaultRule\":{\"id\":\"\",\"variation\":\"variation1\"}}]\n",
+			expectedBody:     "[{\"id\":\"926214f3-80c1-46e6-a913-b2d40b92a932\",\"name\":\"flag1\",\"createdDate\":\"2024-10-25T11:50:27Z\",\"lastUpdatedDate\":\"2024-10-25T11:50:27Z\",\"LastModifiedBy\":\"foo\",\"description\":\"description1\",\"type\":\"string\",\"variations\":{\"variation1\":\"A\",\"variation2\":\"B\"},\"defaultRule\":{\"id\":\"\",\"variation\":\"variation1\"}}]\n",
 		},
 		{
 			name:             "should return a 500 if an error occured ",
@@ -96,7 +96,7 @@ func TestFlagsHandler_GetFeatureFlagByID(t *testing.T) {
 			expectedHTTPCode: http.StatusOK,
 			flags:            defaultInMemoryFlags(),
 			ID:               "926214f3-80c1-46e6-a913-b2d40b92a932",
-			expectedBody:     "{\"id\":\"926214f3-80c1-46e6-a913-b2d40b92a932\",\"name\":\"flag1\",\"createdDate\":\"2024-10-25T11:50:27+02:00\",\"lastUpdatedDate\":\"2024-10-25T11:50:27+02:00\",\"LastModifiedBy\":\"foo\",\"description\":\"description1\",\"type\":\"string\",\"variations\":{\"variation1\":\"A\",\"variation2\":\"B\"},\"defaultRule\":{\"id\":\"\",\"variation\":\"variation1\"}}\n",
+			expectedBody:     "{\"id\":\"926214f3-80c1-46e6-a913-b2d40b92a932\",\"name\":\"flag1\",\"createdDate\":\"2024-10-25T11:50:27Z\",\"lastUpdatedDate\":\"2024-10-25T11:50:27Z\",\"LastModifiedBy\":\"foo\",\"description\":\"description1\",\"type\":\"string\",\"variations\":{\"variation1\":\"A\",\"variation2\":\"B\"},\"defaultRule\":{\"id\":\"\",\"variation\":\"variation1\"}}\n",
 		},
 		{
 			name:             "should return a 400 if the id is not a valid UUID",
@@ -202,7 +202,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 			expectedHTTPCode: http.StatusBadRequest,
 			flags:            defaultInMemoryFlags(),
 			expectedBody:     "{\"errorDetails\":\"code=400, message=Unmarshal type error: expected=model.FeatureFlag, got=string, field=, offset=4, internal=json: cannot unmarshal string into Go value of type model.FeatureFlag\",\"code\":400}\n",
-			newFlagAsString:  `"id":"926214f3-80c1-46e6-a913-b2d40b92a93","name":"flag2","createdDate":"2024-10-25T11:50:27+02:00","lastUpdatedDate":"2024-10-25T11:50:27+02:00","LastModifiedBy":"foo","description":"description1","type":"string","variations":{"variation1":"A","variation2":"B"},"defaultRule":{"id":"","variation":"variation1"}}`,
+			newFlagAsString:  `"id":"926214f3-80c1-46e6-a913-b2d40b92a93","name":"flag2","createdDate":"2024-10-25T11:50:27Z","lastUpdatedDate":"2024-10-25T11:50:27Z","LastModifiedBy":"foo","description":"description1","type":"string","variations":{"variation1":"A","variation2":"B"},"defaultRule":{"id":"","variation":"variation1"}}`,
 		},
 		{
 			name:             "should return an error if error when finding flag by name",
@@ -563,8 +563,8 @@ func defaultInMemoryFlags() []model.FeatureFlag {
 			},
 			VariationType:   "string",
 			LastModifiedBy:  "foo",
-			LastUpdatedDate: time.Unix(1729849827, 0),
-			CreatedDate:     time.Unix(1729849827, 0),
+			LastUpdatedDate: time.Date(2024, 10, 25, 11, 50, 27, 0, time.UTC),
+			CreatedDate:     time.Date(2024, 10, 25, 11, 50, 27, 0, time.UTC),
 			DefaultRule: &model.Rule{
 				VariationResult: testutils.String("variation1"),
 			},
