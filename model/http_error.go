@@ -1,6 +1,9 @@
 package model
 
 func NewHTTPError(code int, err error) (int, HTTPError) {
+	if err == nil {
+		return code, HTTPError{ErrorDetails: "No error passed, please report the issue", Code: code}
+	}
 	return code, HTTPError{ErrorDetails: err.Error(), Code: code}
 }
 
