@@ -24,7 +24,7 @@ type FeatureFlag struct {
 	VariationType   FlagType  `json:"type" db:"type"`
 	// Variations are all the variations available for this flag. The minimum is 2 variations and, we don't have any max
 	// limit except if the variationValue is a bool, the max is 2.
-	Variations *map[string]*interface{} `json:"variations,omitempty"`
+	Variations *map[string]interface{} `json:"variations,omitempty"`
 
 	// Rules is the list of Rule for this flag.
 	// This an optional field.
