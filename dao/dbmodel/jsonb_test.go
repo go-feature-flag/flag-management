@@ -37,6 +37,6 @@ func TestJSONBUnmarshalling(t *testing.T) {
 
 func TestJSONBUnmarshalling_wrongType(t *testing.T) {
 	var theTest dbmodel.JSONB
-	err := theTest.Scan([]byte("toto"))
+	err := theTest.Scan(15)
 	assert.Error(t, err)
 }
