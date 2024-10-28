@@ -19,7 +19,7 @@ func TestFeatureFlag_GetRules(t *testing.T) {
 		{
 			name: "should return empty rules if not set",
 			flag: &model.FeatureFlag{
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"A": testutils.Interface("a"),
 					"B": testutils.Interface("b"),
 				},
@@ -33,7 +33,7 @@ func TestFeatureFlag_GetRules(t *testing.T) {
 		{
 			name: "should return empty rules if set to nil",
 			flag: &model.FeatureFlag{
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"A": testutils.Interface("a"),
 					"B": testutils.Interface("b"),
 				},
@@ -48,7 +48,7 @@ func TestFeatureFlag_GetRules(t *testing.T) {
 		{
 			name: "should return empty rules if set to empty array",
 			flag: &model.FeatureFlag{
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"A": testutils.Interface("a"),
 					"B": testutils.Interface("b"),
 				},
@@ -63,7 +63,7 @@ func TestFeatureFlag_GetRules(t *testing.T) {
 		{
 			name: "should return rules in the same order if rules are set",
 			flag: &model.FeatureFlag{
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"A": testutils.Interface("a"),
 					"B": testutils.Interface("b"),
 				},
@@ -118,7 +118,7 @@ func TestFeatureFlag_GetDefaultRule(t *testing.T) {
 		{
 			name: "should return empty rules if not set",
 			flag: &model.FeatureFlag{
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"A": testutils.Interface("a"),
 					"B": testutils.Interface("b"),
 				},
@@ -128,7 +128,7 @@ func TestFeatureFlag_GetDefaultRule(t *testing.T) {
 		{
 			name: "should return empty rules if set to nil",
 			flag: &model.FeatureFlag{
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"A": testutils.Interface("a"),
 					"B": testutils.Interface("b"),
 				},
@@ -139,7 +139,7 @@ func TestFeatureFlag_GetDefaultRule(t *testing.T) {
 		{
 			name: "should return default rule if set",
 			flag: &model.FeatureFlag{
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"A": testutils.Interface("a"),
 					"B": testutils.Interface("b"),
 				},
