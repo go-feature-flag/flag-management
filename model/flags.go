@@ -4,16 +4,6 @@ import (
 	"time"
 )
 
-type FlagType string
-
-const (
-	FlagTypeBoolean FlagType = "boolean"
-	FlagTypeString  FlagType = "string"
-	FlagTypeInteger FlagType = "integer"
-	FlagTypeDouble  FlagType = "double"
-	FlagTypeJSON    FlagType = "json"
-)
-
 type FeatureFlag struct {
 	ID              string    `json:"id" db:"id"`
 	Name            string    `json:"name" db:"name"`

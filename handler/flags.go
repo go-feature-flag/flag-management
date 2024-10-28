@@ -135,17 +135,8 @@ func validateFlag(flag model.FeatureFlag) (int, error) {
 		return status, err
 	}
 
-	switch flag.VariationType {
-	case model.FlagTypeBoolean,
-		model.FlagTypeDouble,
-		model.FlagTypeInteger,
-		model.FlagTypeString,
-		model.FlagTypeJSON:
-		break
-	case "":
-		return http.StatusBadRequest, errors.New("flag type is required")
-	default:
-		return http.StatusBadRequest, fmt.Errorf("flag type %s not supported", flag.VariationType)
+	if _, err := model.FlagTypeFromValue(string(flag.VariationType)); err != nil {
+		return http.StatusBadRequest, err
 	}
 
 	for _, rule := range flag.GetRules() {

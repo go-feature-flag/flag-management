@@ -28,6 +28,7 @@ func FromModelFeatureFlag(mff model.FeatureFlag) (FeatureFlag, error) {
 	if err != nil {
 		return FeatureFlag{}, err
 	}
+
 	ff := FeatureFlag{
 		ID:              id,
 		Name:            mff.Name,
