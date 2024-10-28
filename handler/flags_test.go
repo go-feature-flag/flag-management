@@ -161,7 +161,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 			newFlag: model.FeatureFlag{
 				Name:        "",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -184,7 +184,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a932",
 				Name:        "flag1",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -215,7 +215,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a93",
 				Name:        "flag2",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -238,7 +238,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a93",
 				Name:        "flag2",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -261,7 +261,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a93",
 				Name:        "flag2",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -284,7 +284,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a93",
 				Name:        "flag2",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -304,7 +304,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a93",
 				Name:        "flag2",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -327,7 +327,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a93",
 				Name:        "flag2",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -352,7 +352,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a93",
 				Name:        "flag2",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -377,7 +377,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a93",
 				Name:        "flag2",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -407,7 +407,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a93",
 				Name:        "flag2",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -438,7 +438,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a93",
 				Name:        "flag2",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -468,7 +468,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a93",
 				Name:        "flag2",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -499,7 +499,7 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a93",
 				Name:        "flag2",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -639,7 +639,7 @@ func TestFlagsHandler_UpdateFlagByID(t *testing.T) {
 			updatedFlag: model.FeatureFlag{
 				Name:        "flag1",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -662,7 +662,7 @@ func TestFlagsHandler_UpdateFlagByID(t *testing.T) {
 			updatedFlag: model.FeatureFlag{
 				Name:        "flag1",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("A"),
 					"variation2": testutils.Interface("B"),
 				},
@@ -695,7 +695,7 @@ func TestFlagsHandler_UpdateFlagByID(t *testing.T) {
 				ID:          "926214f3-80c1-46e6-a913-b2d40b92a932",
 				Name:        "flag1",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("C"),
 					"variation2": testutils.Interface("D"),
 				},
@@ -716,7 +716,7 @@ func TestFlagsHandler_UpdateFlagByID(t *testing.T) {
 			updatedFlag: model.FeatureFlag{
 				Name:        "flag1",
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("C"),
 					"variation2": testutils.Interface("D"),
 				},
@@ -736,7 +736,7 @@ func TestFlagsHandler_UpdateFlagByID(t *testing.T) {
 			id:               "926214f3-80c1-46e6-a913-b2d40b92a932",
 			updatedFlag: model.FeatureFlag{
 				Description: testutils.String("description1"),
-				Variations: &map[string]*interface{}{
+				Variations: &map[string]interface{}{
 					"variation1": testutils.Interface("C"),
 					"variation2": testutils.Interface("D"),
 				},
@@ -874,7 +874,7 @@ func defaultInMemoryFlags() []model.FeatureFlag {
 			ID:          "926214f3-80c1-46e6-a913-b2d40b92a932",
 			Name:        "flag1",
 			Description: testutils.String("description1"),
-			Variations: &map[string]*interface{}{
+			Variations: &map[string]interface{}{
 				"variation1": testutils.Interface("A"),
 				"variation2": testutils.Interface("B"),
 			},
@@ -890,7 +890,7 @@ func defaultInMemoryFlags() []model.FeatureFlag {
 			ID:          "926214f3-80c1-46e6-a913-b2d40b92a111",
 			Name:        "flagr6w8",
 			Description: testutils.String("description1"),
-			Variations: &map[string]*interface{}{
+			Variations: &map[string]interface{}{
 				"variation1": testutils.Interface("A"),
 				"variation2": testutils.Interface("B"),
 			},
@@ -906,7 +906,7 @@ func defaultInMemoryFlags() []model.FeatureFlag {
 			ID:          "926214f3-80c1-46e6-a913-b2d40b92a222",
 			Name:        "flagr576987209",
 			Description: testutils.String("description1"),
-			Variations: &map[string]*interface{}{
+			Variations: &map[string]interface{}{
 				"variation1": testutils.Interface("A"),
 				"variation2": testutils.Interface("B"),
 			},

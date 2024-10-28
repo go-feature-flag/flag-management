@@ -367,7 +367,7 @@
                 "variations": {
                     "description": "Variations are all the variations available for this flag. The minimum is 2 variations and, we don't have any max\nlimit except if the variationValue is a bool, the max is 2.",
                     "type": "object",
-                    "additionalProperties": {}
+                    "additionalProperties": true
                 },
                 "version": {
                     "description": "Version (optional) This field contains the version of the flag.\nThe version is manually managed when you configure your flags and, it is used to display the information\nin the notifications and data collection.",
