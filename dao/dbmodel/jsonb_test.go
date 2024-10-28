@@ -1,7 +1,6 @@
 package dbmodel_test
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/go-feature-flag/app-api/dao/dbmodel"
@@ -17,24 +16,27 @@ var theTestMap = map[string]interface{}{
 	},
 }
 
-var theTestString = `{"field":{"another_key":"another_value","key":"value","nested_key":{"child_key":"child_value"}}}`
-
-type TestStruct struct {
-	Field dbmodel.JSONB `json:"field"`
-}
+var theTestString = `{"another_key":"another_value","key":"value","nested_key":{"child_key":"child_value"}}`
 
 func TestJSONBMarshalling(t *testing.T) {
-	theTest := TestStruct{
-		Field: theTestMap,
+	d := theTestMap
+	s, _ := dbmodel.JSONB(d).Value()
+	if v, ok := s.([]byte); ok {
+		assert.JSONEq(t, theTestString, string(v))
+	} else {
+		assert.False(t, true, "should be a byte slice")
 	}
-	b, err := json.Marshal(theTest)
-	assert.Nil(t, err)
-	assert.Equal(t, theTestString, string(b))
 }
 
 func TestJSONBUnmarshalling(t *testing.T) {
-	theTest := TestStruct{}
-	err := json.Unmarshal([]byte(theTestString), &theTest)
-	assert.Nil(t, err)
-	assert.Equal(t, dbmodel.JSONB(theTestMap), theTest.Field)
+	var theTest dbmodel.JSONB
+	err := theTest.Scan([]byte(theTestString))
+	assert.NoError(t, err)
+	assert.Equal(t, dbmodel.JSONB(theTestMap), theTest)
+}
+
+func TestJSONBUnmarshalling_wrongType(t *testing.T) {
+	var theTest dbmodel.JSONB
+	err := theTest.Scan([]byte("toto"))
+	assert.Error(t, err)
 }
