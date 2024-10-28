@@ -1,4 +1,4 @@
-package daoErr
+package daoerr
 
 import (
 	"database/sql"
