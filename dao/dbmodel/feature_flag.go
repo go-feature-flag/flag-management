@@ -51,14 +51,11 @@ func FromModelFeatureFlag(mff model.FeatureFlag) (FeatureFlag, error) {
 	return ff, nil
 }
 
-func (ff *FeatureFlag) ToModelFeatureFlag(rules []Rule) (model.FeatureFlag, error) {
+func (ff *FeatureFlag) ToModelFeatureFlag(rules []Rule) model.FeatureFlag {
 	var apiRules = make([]model.Rule, 0)
 	var defaultRule *model.Rule
 	for _, rule := range rules {
-		convertedRule, err := rule.ToModelRule()
-		if err != nil {
-			return model.FeatureFlag{}, err
-		}
+		convertedRule := rule.ToModelRule()
 		if rule.IsDefault {
 			defaultRule = &convertedRule
 			continue
@@ -88,5 +85,5 @@ func (ff *FeatureFlag) ToModelFeatureFlag(rules []Rule) (model.FeatureFlag, erro
 		LastUpdatedDate: ff.LastUpdatedDate,
 		Rules:           &apiRules,
 		DefaultRule:     defaultRule,
-	}, nil
+	}
 }

@@ -1,7 +1,6 @@
 package dbmodel
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/go-feature-flag/app-api/model"
@@ -15,7 +14,7 @@ type Rule struct {
 	Name                                string     `db:"name"`
 	Query                               string     `db:"query"`
 	VariationResult                     *string    `db:"variation_result"`
-	Percentages                         *string    `db:"percentages"` // JSONB is stored as string
+	Percentages                         JSONB      `db:"percentages"` // JSONB is stored as string
 	Disable                             bool       `db:"disable"`
 	ProgressiveRolloutInitialVariation  *string    `db:"progressive_rollout_initial_variation"`
 	ProgressiveRolloutEndVariation      *string    `db:"progressive_rollout_end_variation"`
@@ -38,14 +37,10 @@ func FromModelRule(mr model.Rule, featureFlagID uuid.UUID, isDefault bool, order
 		id = uuid.New()
 	}
 
-	var percentages *string
-	if mr.Percentages != nil {
-		percentagesJSON, err := json.Marshal(mr.Percentages)
-		if err != nil {
-			return Rule{}, err
-		}
-		percentagesStr := string(percentagesJSON)
-		percentages = &percentagesStr
+	if isDefault {
+		orderIndex = -1
+		mr.Query = ""
+		mr.Disable = false
 	}
 
 	dbr := Rule{
@@ -62,8 +57,12 @@ func FromModelRule(mr model.Rule, featureFlagID uuid.UUID, isDefault bool, order
 		dbr.VariationResult = mr.VariationResult
 	}
 
-	if percentages != nil {
-		dbr.Percentages = percentages
+	if mr.Percentages != nil {
+		percentages := make(map[string]interface{})
+		for k, v := range *mr.Percentages {
+			percentages[k] = v
+		}
+		dbr.Percentages = JSONB(percentages)
 	}
 
 	if mr.ProgressiveRollout != nil {
@@ -77,7 +76,7 @@ func FromModelRule(mr model.Rule, featureFlagID uuid.UUID, isDefault bool, order
 	return dbr, nil
 }
 
-func (rule *Rule) ToModelRule() (model.Rule, error) {
+func (rule *Rule) ToModelRule() model.Rule {
 	apiRule := model.Rule{
 		ID:      rule.ID.String(),
 		Name:    rule.Name,
@@ -90,12 +89,12 @@ func (rule *Rule) ToModelRule() (model.Rule, error) {
 	}
 
 	if rule.Percentages != nil {
-		var percentages map[string]float64
-		err := json.Unmarshal([]byte(*rule.Percentages), &percentages)
-		if err != nil {
-			return model.Rule{}, err
+		for k, v := range rule.Percentages {
+			if apiRule.Percentages == nil {
+				apiRule.Percentages = &map[string]float64{}
+			}
+			(*apiRule.Percentages)[k] = v.(float64)
 		}
-		apiRule.Percentages = &percentages
 	}
 
 	if rule.ProgressiveRolloutInitialVariation != nil || rule.ProgressiveRolloutEndVariation != nil {
@@ -112,5 +111,5 @@ func (rule *Rule) ToModelRule() (model.Rule, error) {
 			},
 		}
 	}
-	return apiRule, nil
+	return apiRule
 }

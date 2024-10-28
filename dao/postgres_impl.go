@@ -52,12 +52,7 @@ func (m *pgFlagImpl) GetFlags(ctx context.Context) ([]model.FeatureFlag, daoErr.
 		if err != nil {
 			return []model.FeatureFlag{}, daoErr.WrapPostgresError(err)
 		}
-
-		convertedFlag, err := flag.ToModelFeatureFlag(rules)
-		if err != nil {
-			return []model.FeatureFlag{}, daoErr.WrapPostgresError(err)
-		}
-		res = append(res, convertedFlag)
+		res = append(res, flag.ToModelFeatureFlag(rules))
 	}
 	return res, nil
 }
@@ -79,12 +74,7 @@ func (m *pgFlagImpl) GetFlagByID(ctx context.Context, id string) (model.FeatureF
 	if errRule != nil {
 		return model.FeatureFlag{}, daoErr.WrapPostgresError(errRule)
 	}
-
-	convertedFlag, err := f.ToModelFeatureFlag(rules)
-	if err != nil {
-		return model.FeatureFlag{}, daoErr.NewDaoError(daoErr.ConversionError, err)
-	}
-	return convertedFlag, nil
+	return f.ToModelFeatureFlag(rules), nil
 }
 
 // GetFlagByName return a flag by its name
@@ -101,12 +91,7 @@ func (m *pgFlagImpl) GetFlagByName(ctx context.Context, name string) (model.Feat
 	if errRule != nil {
 		return model.FeatureFlag{}, daoErr.WrapPostgresError(errRule)
 	}
-
-	convertedFlag, err := f.ToModelFeatureFlag(rules)
-	if err != nil {
-		return model.FeatureFlag{}, daoErr.NewDaoError(daoErr.ConversionError, err)
-	}
-	return convertedFlag, nil
+	return f.ToModelFeatureFlag(rules), nil
 }
 
 // CreateFlag create a new flag, return the id of the flag
