@@ -53,7 +53,7 @@ definitions:
       type:
         $ref: '#/definitions/model.FlagType'
       variations:
-        additionalProperties: {}
+        additionalProperties: true
         description: |-
           Variations are all the variations available for this flag. The minimum is 2 variations and, we don't have any max
           limit except if the variationValue is a bool, the max is 2.
