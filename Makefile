@@ -47,9 +47,7 @@ test: ## Run the tests of the project
 	$(GOTEST) -v -race ./...
 
 coverage: ## Run the tests of the project and export the coverage
-	$(GOTEST) -cover -covermode=count -tags=docker -coverprofile=coverage.cov.tmp ./... \
-	&& cat coverage.cov.tmp | grep -v "/examples/" > coverage.cov
-
+	$(GOTEST) -cover -covermode=count -tags=docker -coverprofile=coverage.cov ./...
 
 ## Lint:
 lint: ## Use golintci-lint on your project
