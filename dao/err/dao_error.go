@@ -1,5 +1,7 @@
 package daoerr
 
+import "errors"
+
 type DaoErrorCode string
 
 const (
@@ -17,6 +19,10 @@ type DaoError interface {
 }
 
 func NewDaoError(code DaoErrorCode, err error) DaoError {
+	if err == nil {
+		err = errors.New("unknown error")
+	}
+
 	return daoError{
 		error: err,
 		code:  code,
