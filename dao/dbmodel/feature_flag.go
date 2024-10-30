@@ -1,6 +1,7 @@
 package dbmodel
 
 import (
+	"errors"
 	"time"
 
 	"github.com/go-feature-flag/app-api/model"
@@ -51,17 +52,23 @@ func FromModelFeatureFlag(mff model.FeatureFlag) (FeatureFlag, error) {
 	return ff, nil
 }
 
-func (ff *FeatureFlag) ToModelFeatureFlag(rules []Rule) model.FeatureFlag {
+func (ff *FeatureFlag) ToModelFeatureFlag(rules []Rule) (model.FeatureFlag, error) {
 	var apiRules = make([]model.Rule, 0)
 	var defaultRule *model.Rule
+	hasDefaultRule := false
 	for _, rule := range rules {
 		convertedRule := rule.ToModelRule()
 		if rule.IsDefault {
+			hasDefaultRule = true
 			defaultRule = &convertedRule
 			continue
 		}
 		apiRules = append(apiRules, convertedRule)
 	}
+	if !hasDefaultRule {
+		return model.FeatureFlag{}, errors.New("default rule is required")
+	}
+
 	variations := make(map[string]interface{})
 	if ff.Variations != nil {
 		variations = ff.Variations
@@ -85,5 +92,6 @@ func (ff *FeatureFlag) ToModelFeatureFlag(rules []Rule) model.FeatureFlag {
 		LastUpdatedDate: ff.LastUpdatedDate,
 		Rules:           &apiRules,
 		DefaultRule:     defaultRule,
-	}
+		LastModifiedBy:  ff.LastModifiedBy,
+	}, nil
 }

@@ -204,11 +204,47 @@ func TestToModelFeatureFlag(t *testing.T) {
 	ruleId2, _ := uuid.Parse("123e4567-e89b-12d3-a456-426614174222")
 
 	tests := []struct {
-		name   string
-		dbFF   dbmodel.FeatureFlag
-		dbRule []dbmodel.Rule
-		want   model.FeatureFlag
+		name    string
+		dbFF    dbmodel.FeatureFlag
+		dbRule  []dbmodel.Rule
+		want    model.FeatureFlag
+		wantErr assert.ErrorAssertionFunc
 	}{
+		{
+			name: "should error if no default rule",
+			dbFF: dbmodel.FeatureFlag{
+				ID:          flagID,
+				Name:        "my-flag",
+				Description: testutils.String("my flag description"),
+				Variations: dbmodel.JSONB(map[string]interface{}{
+					"A": "a",
+					"B": "b",
+				}),
+				Type:         model.FlagTypeString,
+				BucketingKey: testutils.String("teamID"),
+				Metadata: dbmodel.JSONB(map[string]interface{}{
+					"key": "value",
+				}),
+				TrackEvents:     testutils.Bool(true),
+				Disable:         testutils.Bool(false),
+				Version:         testutils.String("1.0.0"),
+				CreatedDate:     time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
+				LastUpdatedDate: time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC),
+			},
+			dbRule: []dbmodel.Rule{
+				{
+					ID:            ruleId1,
+					Name:          "Rule 1",
+					FeatureFlagID: flagID,
+					Disable:       false,
+					Percentages:   testutils.JSONB(dbmodel.JSONB(map[string]interface{}{"A": float64(50), "B": float64(50)})),
+					IsDefault:     false,
+					Query:         testutils.String(`targetingKey eq "foo"`),
+					OrderIndex:    6,
+				},
+			},
+			wantErr: assert.Error,
+		},
 		{
 			name: "should convert model.FeatureFlag to dbmodel.FeatureFlag",
 			dbFF: dbmodel.FeatureFlag{
@@ -236,16 +272,16 @@ func TestToModelFeatureFlag(t *testing.T) {
 					Name:          "Rule 1",
 					FeatureFlagID: flagID,
 					Disable:       false,
-					Percentages:   dbmodel.JSONB(map[string]interface{}{"A": float64(50), "B": float64(50)}),
+					Percentages:   testutils.JSONB(dbmodel.JSONB(map[string]interface{}{"A": float64(50), "B": float64(50)})),
 					IsDefault:     false,
-					Query:         `targetingKey eq "foo"`,
+					Query:         testutils.String(`targetingKey eq "foo"`),
 					OrderIndex:    6,
 				},
 				{
 					ID:                                  ruleId2,
 					Name:                                "rule 2",
 					FeatureFlagID:                       flagID,
-					Query:                               `targetingKey eq "bar"`,
+					Query:                               testutils.String(`targetingKey eq "bar"`),
 					Disable:                             true,
 					OrderIndex:                          10,
 					IsDefault:                           false,
@@ -265,6 +301,7 @@ func TestToModelFeatureFlag(t *testing.T) {
 					IsDefault:       true,
 				},
 			},
+			wantErr: assert.NoError,
 			want: model.FeatureFlag{
 				ID:          flagID.String(),
 				Name:        "my-flag",
@@ -320,7 +357,8 @@ func TestToModelFeatureFlag(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.dbFF.ToModelFeatureFlag(tt.dbRule)
+			got, err := tt.dbFF.ToModelFeatureFlag(tt.dbRule)
+			tt.wantErr(t, err)
 			assert.Equalf(t, tt.want, got, "FromModelFeatureFlag")
 		})
 	}

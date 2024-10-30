@@ -1,10 +1,11 @@
-package dao
+package pgimpl
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
+	"github.com/go-feature-flag/app-api/dao"
 	"github.com/go-feature-flag/app-api/dao/dbmodel"
 	daoErr "github.com/go-feature-flag/app-api/dao/err"
 	"github.com/go-feature-flag/app-api/model"
@@ -14,16 +15,28 @@ import (
 	_ "github.com/lib/pq" // we import the driver used by sqlx
 )
 
-func NewPostgresDao(serverHost string, port int, database string, username string, password string) (Flags, error) {
-	// TODO: add checks for the input parameters
-	// TODO: close the connection when the dao is closed
-
+func NewPostgresDao(host string, port int, dbName string, username string, password string) (dao.Flags, error) {
+	if host == "" {
+		return nil, fmt.Errorf("host is empty")
+	}
+	if port == 0 {
+		return nil, fmt.Errorf("invalid port: port is 0")
+	}
+	if dbName == "" {
+		return nil, fmt.Errorf("dbName is empty")
+	}
+	if username == "" {
+		return nil, fmt.Errorf("username is empty")
+	}
+	if password == "" {
+		return nil, fmt.Errorf("password is empty")
+	}
 	connectionString := fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s?sslmode=disable", username, password, serverHost, port, database)
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable", username, password, host, port, dbName)
 
 	conn, err := sqlx.Connect("postgres", connectionString)
 	if err != nil {
-		return nil, fmt.Errorf("testConnection: database connection is nil")
+		return nil, fmt.Errorf("impossible to connect to the database: %w", err)
 	}
 	instance := &pgFlagImpl{
 		conn: conn,
@@ -48,11 +61,15 @@ func (m *pgFlagImpl) GetFlags(ctx context.Context) ([]model.FeatureFlag, daoErr.
 	res := make([]model.FeatureFlag, 0, len(f))
 	for _, flag := range f {
 		var rules []dbmodel.Rule
-		err := m.conn.SelectContext(ctx, &rules, `SELECT * FROM rules WHERE feature_flag_id = $1`, flag.ID)
+		err := m.conn.SelectContext(ctx, &rules, `SELECT * FROM rules WHERE feature_flag_id = $1 ORDER BY order_index`, flag.ID)
 		if err != nil {
 			return []model.FeatureFlag{}, daoErr.WrapPostgresError(err)
 		}
-		res = append(res, flag.ToModelFeatureFlag(rules))
+		convertedFlag, err := flag.ToModelFeatureFlag(rules)
+		if err != nil {
+			return []model.FeatureFlag{}, daoErr.WrapPostgresError(err)
+		}
+		res = append(res, convertedFlag)
 	}
 	return res, nil
 }
@@ -70,11 +87,15 @@ func (m *pgFlagImpl) GetFlagByID(ctx context.Context, id string) (model.FeatureF
 		ctx,
 		&rules,
 		`SELECT * FROM rules WHERE feature_flag_id = $1 ORDER BY order_index`, f.ID)
-
-	if errRule != nil {
+	if errRule != nil && !errors.Is(errRule, pgx.ErrNoRows) {
 		return model.FeatureFlag{}, daoErr.WrapPostgresError(errRule)
 	}
-	return f.ToModelFeatureFlag(rules), nil
+
+	if convertedFlag, err := f.ToModelFeatureFlag(rules); err != nil {
+		return model.FeatureFlag{}, daoErr.WrapPostgresError(err)
+	} else {
+		return convertedFlag, nil
+	}
 }
 
 // GetFlagByName return a flag by its name
@@ -88,10 +109,14 @@ func (m *pgFlagImpl) GetFlagByName(ctx context.Context, name string) (model.Feat
 	var rules []dbmodel.Rule
 	errRule := m.conn.SelectContext(ctx, &rules,
 		`SELECT * FROM rules WHERE feature_flag_id = $1 ORDER BY order_index DESC`, f.ID)
-	if errRule != nil {
+	if errRule != nil && !errors.Is(errRule, pgx.ErrNoRows) {
 		return model.FeatureFlag{}, daoErr.WrapPostgresError(errRule)
 	}
-	return f.ToModelFeatureFlag(rules), nil
+	if convertedFlag, err := f.ToModelFeatureFlag(rules); err != nil {
+		return model.FeatureFlag{}, daoErr.WrapPostgresError(err)
+	} else {
+		return convertedFlag, nil
+	}
 }
 
 // CreateFlag create a new flag, return the id of the flag
