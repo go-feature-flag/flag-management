@@ -193,3 +193,28 @@ func TestFromModelRuleCreateUUID(t *testing.T) {
 	assert.NotNil(t, got.ID)
 	assert.NotEqual(t, uuid.Nil, got.ID)
 }
+
+func TestFromModelRuleErrorParsingUUID(t *testing.T) {
+	rule := model.Rule{
+		Name: "rule 1",
+		ID:   "invalid-uuid",
+		ProgressiveRollout: &model.ProgressiveRollout{
+			Initial: &model.ProgressiveRolloutStep{
+				Variation:  testutils.String("A"),
+				Percentage: testutils.Float64(0),
+				Date:       testutils.Time(time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)),
+			},
+			End: &model.ProgressiveRolloutStep{
+				Variation:  testutils.String("B"),
+				Percentage: testutils.Float64(100),
+				Date:       testutils.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+			},
+		},
+		Query:   `targetingKey eq "foo"`,
+		Disable: true,
+	}
+
+	_, err := dbmodel.FromModelRule(rule, uuid.New(), false, 1)
+	require.Error(t, err)
+	assert.Equal(t, "invalid UUID length: 12", err.Error())
+}
