@@ -9,6 +9,7 @@ import (
 	"github.com/go-feature-flag/app-api/testutils"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFromModelRule(t *testing.T) {
@@ -46,7 +47,7 @@ func TestFromModelRule(t *testing.T) {
 				ID:              ruleID,
 				Name:            "defaultRule",
 				FeatureFlagID:   flagID,
-				Query:           "",
+				Query:           testutils.String(""),
 				Disable:         false,
 				OrderIndex:      -1,
 				VariationResult: testutils.String("A"),
@@ -73,7 +74,7 @@ func TestFromModelRule(t *testing.T) {
 				ID:              ruleID,
 				Name:            "rule 1",
 				FeatureFlagID:   flagID,
-				Query:           `targetingKey eq "foo"`,
+				Query:           testutils.String(`targetingKey eq "foo"`),
 				Disable:         true,
 				OrderIndex:      10,
 				VariationResult: testutils.String("A"),
@@ -103,11 +104,11 @@ func TestFromModelRule(t *testing.T) {
 				ID:            ruleID,
 				Name:          "rule 1",
 				FeatureFlagID: flagID,
-				Query:         `targetingKey eq "foo"`,
+				Query:         testutils.String(`targetingKey eq "foo"`),
 				Disable:       true,
 				OrderIndex:    10,
 				IsDefault:     false,
-				Percentages: dbmodel.JSONB(map[string]interface{}{
+				Percentages: testutils.JSONB(map[string]interface{}{
 					"A": float64(50),
 					"B": float64(50),
 				}),
@@ -144,7 +145,7 @@ func TestFromModelRule(t *testing.T) {
 				ID:                                  ruleID,
 				Name:                                "rule 1",
 				FeatureFlagID:                       flagID,
-				Query:                               `targetingKey eq "foo"`,
+				Query:                               testutils.String(`targetingKey eq "foo"`),
 				Disable:                             true,
 				OrderIndex:                          10,
 				IsDefault:                           false,
@@ -166,4 +167,54 @@ func TestFromModelRule(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func TestFromModelRuleCreateUUID(t *testing.T) {
+	rule := model.Rule{
+		Name: "rule 1",
+		ProgressiveRollout: &model.ProgressiveRollout{
+			Initial: &model.ProgressiveRolloutStep{
+				Variation:  testutils.String("A"),
+				Percentage: testutils.Float64(0),
+				Date:       testutils.Time(time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)),
+			},
+			End: &model.ProgressiveRolloutStep{
+				Variation:  testutils.String("B"),
+				Percentage: testutils.Float64(100),
+				Date:       testutils.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+			},
+		},
+		Query:   `targetingKey eq "foo"`,
+		Disable: true,
+	}
+
+	got, err := dbmodel.FromModelRule(rule, uuid.New(), false, 1)
+	require.NoError(t, err)
+	assert.NotNil(t, got.ID)
+	assert.NotEqual(t, uuid.Nil, got.ID)
+}
+
+func TestFromModelRuleErrorParsingUUID(t *testing.T) {
+	rule := model.Rule{
+		Name: "rule 1",
+		ID:   "invalid-uuid",
+		ProgressiveRollout: &model.ProgressiveRollout{
+			Initial: &model.ProgressiveRolloutStep{
+				Variation:  testutils.String("A"),
+				Percentage: testutils.Float64(0),
+				Date:       testutils.Time(time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)),
+			},
+			End: &model.ProgressiveRolloutStep{
+				Variation:  testutils.String("B"),
+				Percentage: testutils.Float64(100),
+				Date:       testutils.Time(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)),
+			},
+		},
+		Query:   `targetingKey eq "foo"`,
+		Disable: true,
+	}
+
+	_, err := dbmodel.FromModelRule(rule, uuid.New(), false, 1)
+	require.Error(t, err)
+	assert.Equal(t, "invalid UUID length: 12", err.Error())
 }

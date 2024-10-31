@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/go-feature-flag/app-api/api"
-	"github.com/go-feature-flag/app-api/dao"
+	"github.com/go-feature-flag/app-api/dao/pgimpl"
 	"github.com/go-feature-flag/app-api/handler"
 )
 
@@ -22,7 +22,7 @@ var version = "localdev"
 // @name Authorization
 func main() {
 	// TODO: add configuration management for the API server.
-	data, err := dao.NewPostgresDao("localhost", 5432, "gofeatureflag", "goff-user", "my-secret-pw")
+	data, err := pgimpl.NewPostgresDao("localhost", 5432, "gofeatureflag", "goff-user", "my-secret-pw")
 	if err != nil {
 		panic(err)
 	}

@@ -1,6 +1,10 @@
 package testutils
 
-import "time"
+import (
+	"time"
+
+	"github.com/go-feature-flag/app-api/dao/dbmodel"
+)
 
 // Bool returns a pointer to the bool value passed in.
 func Bool(v bool) *bool {
@@ -27,5 +31,9 @@ func Interface(v interface{}) *interface{} {
 }
 
 func String(v string) *string {
+	return &v
+}
+
+func JSONB(v dbmodel.JSONB) *dbmodel.JSONB {
 	return &v
 }

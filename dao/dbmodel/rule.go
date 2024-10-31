@@ -12,9 +12,9 @@ type Rule struct {
 	FeatureFlagID                       uuid.UUID  `db:"feature_flag_id"`
 	IsDefault                           bool       `db:"is_default"`
 	Name                                string     `db:"name"`
-	Query                               string     `db:"query"`
+	Query                               *string    `db:"query"`
 	VariationResult                     *string    `db:"variation_result"`
-	Percentages                         JSONB      `db:"percentages"` // JSONB is stored as string
+	Percentages                         *JSONB     `db:"percentages"` // JSONB is stored as string
 	Disable                             bool       `db:"disable"`
 	ProgressiveRolloutInitialVariation  *string    `db:"progressive_rollout_initial_variation"`
 	ProgressiveRolloutEndVariation      *string    `db:"progressive_rollout_end_variation"`
@@ -48,7 +48,7 @@ func FromModelRule(mr model.Rule, featureFlagID uuid.UUID, isDefault bool, order
 		FeatureFlagID: featureFlagID,
 		IsDefault:     isDefault,
 		Name:          mr.Name,
-		Query:         mr.Query,
+		Query:         &mr.Query,
 		Disable:       mr.Disable,
 		OrderIndex:    orderIndex,
 	}
@@ -62,7 +62,8 @@ func FromModelRule(mr model.Rule, featureFlagID uuid.UUID, isDefault bool, order
 		for k, v := range *mr.Percentages {
 			percentages[k] = v
 		}
-		dbr.Percentages = JSONB(percentages)
+		jsonbPercentages := JSONB(percentages)
+		dbr.Percentages = &jsonbPercentages
 	}
 
 	if mr.ProgressiveRollout != nil {
@@ -80,16 +81,16 @@ func (rule *Rule) ToModelRule() model.Rule {
 	apiRule := model.Rule{
 		ID:      rule.ID.String(),
 		Name:    rule.Name,
-		Query:   rule.Query,
 		Disable: rule.Disable,
 	}
-
+	if rule.Query != nil {
+		apiRule.Query = *rule.Query
+	}
 	if rule.VariationResult != nil {
 		apiRule.VariationResult = rule.VariationResult
 	}
-
 	if rule.Percentages != nil {
-		for k, v := range rule.Percentages {
+		for k, v := range *rule.Percentages {
 			if apiRule.Percentages == nil {
 				apiRule.Percentages = &map[string]float64{}
 			}
