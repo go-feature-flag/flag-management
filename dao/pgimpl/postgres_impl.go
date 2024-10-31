@@ -108,7 +108,7 @@ func (m *pgFlagImpl) GetFlagByName(ctx context.Context, name string) (model.Feat
 
 	var rules []dbmodel.Rule
 	errRule := m.conn.SelectContext(ctx, &rules,
-		`SELECT * FROM rules WHERE feature_flag_id = $1 ORDER BY order_index DESC`, f.ID)
+		`SELECT * FROM rules WHERE feature_flag_id = $1 ORDER BY order_index`, f.ID)
 	if errRule != nil && !errors.Is(errRule, pgx.ErrNoRows) {
 		return model.FeatureFlag{}, daoErr.WrapPostgresError(errRule)
 	}
@@ -123,7 +123,7 @@ func (m *pgFlagImpl) GetFlagByName(ctx context.Context, name string) (model.Feat
 func (m *pgFlagImpl) CreateFlag(ctx context.Context, flag model.FeatureFlag) (string, daoErr.DaoError) {
 	dbFeatureFlag, err := dbmodel.FromModelFeatureFlag(flag)
 	if err != nil {
-		return "", daoErr.NewDaoError(daoErr.ConversionError, err)
+		return "", daoErr.WrapPostgresError(err)
 	}
 
 	tx, err := m.conn.Beginx()
@@ -197,7 +197,7 @@ func (m *pgFlagImpl) CreateFlag(ctx context.Context, flag model.FeatureFlag) (st
 func (m *pgFlagImpl) UpdateFlag(ctx context.Context, flag model.FeatureFlag) daoErr.DaoError {
 	dbQuery, errConv := dbmodel.FromModelFeatureFlag(flag)
 	if errConv != nil {
-		return daoErr.NewDaoError(daoErr.ConversionError, errConv)
+		return daoErr.WrapPostgresError(errConv)
 	}
 	tx, err := m.conn.Beginx()
 	if err != nil {
@@ -258,7 +258,7 @@ func (m *pgFlagImpl) UpdateFlag(ctx context.Context, flag model.FeatureFlag) dao
 
 	for _, id := range toCreate {
 		rule := listNewRuleIDs[id]
-		if err := m.insertRule(ctx, rule, false, dbQuery.ID, tx, flagOrder[dbQuery.ID.String()]); err != nil {
+		if err := m.insertRule(ctx, rule, false, dbQuery.ID, tx, flagOrder[id]); err != nil {
 			_ = tx.Rollback
 			return daoErr.WrapPostgresError(err)
 		}
@@ -266,7 +266,7 @@ func (m *pgFlagImpl) UpdateFlag(ctx context.Context, flag model.FeatureFlag) dao
 
 	for _, id := range toUpdate {
 		rule := listNewRuleIDs[id]
-		if err = m.updateRule(ctx, rule, false, dbQuery.ID, tx, flagOrder[dbQuery.ID.String()]); err != nil {
+		if err = m.updateRule(ctx, rule, false, dbQuery.ID, tx, flagOrder[id]); err != nil {
 			_ = tx.Rollback
 			return daoErr.WrapPostgresError(err)
 		}

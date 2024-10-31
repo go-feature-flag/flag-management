@@ -294,6 +294,7 @@ func TestGetFlagByID(t *testing.T) {
 		id         string
 		wantErr    assert.ErrorAssertionFunc
 		wantDaoErr daoerr.DaoError
+		want       model.FeatureFlag
 	}{
 		{
 			name:       "should return an error if the flag is not found",
@@ -306,6 +307,61 @@ func TestGetFlagByID(t *testing.T) {
 			initFiles: []string{"./testdata/initial_data.sql"},
 			wantErr:   assert.NoError,
 			id:        "69aa10ec-ec3e-4139-8cdf-6902a5746e2d",
+			want: model.FeatureFlag{
+				ID:          "69aa10ec-ec3e-4139-8cdf-6902a5746e2d",
+				Name:        "my-feature-flag",
+				Description: testutils.String("This is a feature flag"),
+				Variations: &map[string]interface{}{
+					"variationA": "valueA",
+					"variationB": "valueB",
+				},
+				VariationType: "string",
+				BucketingKey:  nil,
+				Metadata: &map[string]interface{}{
+					"key": "value",
+				},
+				TrackEvents:     testutils.Bool(true),
+				Disable:         testutils.Bool(false),
+				Version:         testutils.String("1.0.0"),
+				CreatedDate:     time.Date(2020, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastUpdatedDate: time.Date(2020, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastModifiedBy:  "admin",
+				DefaultRule: &model.Rule{
+					ID:              "1cb941f2-adb4-460f-9259-b4416c90e9e1",
+					Name:            "default-rule",
+					VariationResult: testutils.String("variationA"),
+				},
+				Rules: &[]model.Rule{
+					{
+						ID:      "9f82fe80-b4b6-426a-869a-e4436de66d0d",
+						Name:    "rule 2",
+						Query:   "targetingKey eq \"1234\"",
+						Disable: true,
+						ProgressiveRollout: &model.ProgressiveRollout{
+							Initial: &model.ProgressiveRolloutStep{
+								Variation:  testutils.String("variationA"),
+								Percentage: testutils.Float64(0),
+								Date:       testutils.Time(time.Date(2023, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0))),
+							},
+							End: &model.ProgressiveRolloutStep{
+								Variation:  testutils.String("variationB"),
+								Percentage: testutils.Float64(100),
+								Date:       testutils.Time(time.Date(2024, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0))),
+							},
+						},
+					},
+					{
+						ID:      "546939a9-6df8-4a0b-b9cf-1d69ff300eb5",
+						Name:    "rule 1",
+						Query:   "targetingKey eq \"valueA\"",
+						Disable: false,
+						Percentages: &map[string]float64{
+							"variationA": 10,
+							"variationB": 90,
+						},
+					},
+				},
+			},
 		}, {
 			name:       "should return an error for an invalid flag",
 			initFiles:  []string{"./testdata/initial_data_without_default_rule.sql"},
@@ -327,9 +383,13 @@ func TestGetFlagByID(t *testing.T) {
 			defer tearDownTest(t, pgContainer, conn)
 			pgDao := getPostgresDao(t, pgContainer)
 
-			_, err := pgDao.GetFlagByID(context.TODO(), tt.id)
+			got, err := pgDao.GetFlagByID(context.TODO(), tt.id)
 			tt.wantErr(t, err)
-			assert.Equal(t, tt.wantDaoErr, err)
+			if err != nil {
+				assert.Equal(t, tt.wantDaoErr, err)
+			} else {
+				assert.Equal(t, tt.want, got)
+			}
 		})
 	}
 
@@ -342,6 +402,7 @@ func TestGetFlagByName(t *testing.T) {
 		flagName   string
 		wantErr    assert.ErrorAssertionFunc
 		wantDaoErr daoerr.DaoError
+		want       model.FeatureFlag
 	}{
 		{
 			name:       "should return an error if the flag is not found",
@@ -354,6 +415,61 @@ func TestGetFlagByName(t *testing.T) {
 			initFiles: []string{"./testdata/initial_data.sql"},
 			wantErr:   assert.NoError,
 			flagName:  "my-feature-flag",
+			want: model.FeatureFlag{
+				ID:          "69aa10ec-ec3e-4139-8cdf-6902a5746e2d",
+				Name:        "my-feature-flag",
+				Description: testutils.String("This is a feature flag"),
+				Variations: &map[string]interface{}{
+					"variationA": "valueA",
+					"variationB": "valueB",
+				},
+				VariationType: "string",
+				BucketingKey:  nil,
+				Metadata: &map[string]interface{}{
+					"key": "value",
+				},
+				TrackEvents:     testutils.Bool(true),
+				Disable:         testutils.Bool(false),
+				Version:         testutils.String("1.0.0"),
+				CreatedDate:     time.Date(2020, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastUpdatedDate: time.Date(2020, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastModifiedBy:  "admin",
+				DefaultRule: &model.Rule{
+					ID:              "1cb941f2-adb4-460f-9259-b4416c90e9e1",
+					Name:            "default-rule",
+					VariationResult: testutils.String("variationA"),
+				},
+				Rules: &[]model.Rule{
+					{
+						ID:      "9f82fe80-b4b6-426a-869a-e4436de66d0d",
+						Name:    "rule 2",
+						Query:   "targetingKey eq \"1234\"",
+						Disable: true,
+						ProgressiveRollout: &model.ProgressiveRollout{
+							Initial: &model.ProgressiveRolloutStep{
+								Variation:  testutils.String("variationA"),
+								Percentage: testutils.Float64(0),
+								Date:       testutils.Time(time.Date(2023, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0))),
+							},
+							End: &model.ProgressiveRolloutStep{
+								Variation:  testutils.String("variationB"),
+								Percentage: testutils.Float64(100),
+								Date:       testutils.Time(time.Date(2024, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0))),
+							},
+						},
+					},
+					{
+						ID:      "546939a9-6df8-4a0b-b9cf-1d69ff300eb5",
+						Name:    "rule 1",
+						Query:   "targetingKey eq \"valueA\"",
+						Disable: false,
+						Percentages: &map[string]float64{
+							"variationA": 10,
+							"variationB": 90,
+						},
+					},
+				},
+			},
 		}, {
 			name:       "should return an error for an invalid flag",
 			initFiles:  []string{"./testdata/initial_data_without_default_rule.sql"},
@@ -368,16 +484,463 @@ func TestGetFlagByName(t *testing.T) {
 			wantDaoErr: daoerr.NewDaoError(daoerr.UnknownError, errors.New("default rule is required")),
 		},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pgContainer, conn := setupTest(t, tt.initFiles)
 			defer tearDownTest(t, pgContainer, conn)
 			pgDao := getPostgresDao(t, pgContainer)
 
-			_, err := pgDao.GetFlagByName(context.TODO(), tt.flagName)
-			tt.wantErr(t, err)
+			got, err := pgDao.GetFlagByName(context.TODO(), tt.flagName)
+			if err != nil {
+				tt.wantErr(t, err)
+			} else {
+				assert.Equal(t, tt.want, got)
+			}
 			assert.Equal(t, tt.wantDaoErr, err)
+		})
+	}
+
+}
+
+func TestCreateFlag(t *testing.T) {
+	tests := []struct {
+		name         string
+		flagToCreate model.FeatureFlag
+		initFiles    []string
+		wantErr      assert.ErrorAssertionFunc
+		wantDaoErr   daoerr.DaoError
+		wantUUID     string
+	}{
+		{
+			name:      "should create a new flag",
+			initFiles: []string{"./testdata/initial_data.sql"},
+			wantErr:   assert.NoError,
+			wantUUID:  "6e0133ab-c262-4a0e-9eb1-79173c214921",
+			flagToCreate: model.FeatureFlag{
+				ID:          "6e0133ab-c262-4a0e-9eb1-79173c214921",
+				Name:        "my-new-feature-flag",
+				Description: testutils.String("This is a feature flag"),
+				Variations: &map[string]interface{}{
+					"variationA": 10,
+					"variationB": 120,
+				},
+				VariationType: "integer",
+				BucketingKey:  nil,
+				Metadata: &map[string]interface{}{
+					"key": "value",
+				},
+				TrackEvents:     testutils.Bool(true),
+				Disable:         testutils.Bool(false),
+				Version:         testutils.String("0.0.1"),
+				CreatedDate:     time.Date(2022, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastUpdatedDate: time.Date(2023, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastModifiedBy:  "foo",
+				DefaultRule: &model.Rule{
+					ID:              "6761c19f-1b74-49f1-9101-4c4aaa7e89e2",
+					Name:            "default-rule",
+					VariationResult: testutils.String("variationA"),
+				},
+				Rules: &[]model.Rule{
+					{
+						ID:      "2300e15f-7755-4e39-b7c3-957f88f968bd",
+						Name:    "rule 2",
+						Query:   "targetingKey eq \"1234\"",
+						Disable: true,
+						ProgressiveRollout: &model.ProgressiveRollout{
+							Initial: &model.ProgressiveRolloutStep{
+								Variation:  testutils.String("variationA"),
+								Percentage: testutils.Float64(0),
+								Date:       testutils.Time(time.Date(2023, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0))),
+							},
+							End: &model.ProgressiveRolloutStep{
+								Variation:  testutils.String("variationB"),
+								Percentage: testutils.Float64(100),
+								Date:       testutils.Time(time.Date(2024, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0))),
+							},
+						},
+					},
+					{
+						ID:      "8db65089-6785-4965-84a9-5d055469854b",
+						Name:    "rule 1",
+						Query:   "targetingKey eq \"valueA\"",
+						Disable: false,
+						Percentages: &map[string]float64{
+							"variationA": 10,
+							"variationB": 90,
+						},
+					},
+				},
+			},
+		}, {
+			name:       "should return an error if UUID not valid",
+			initFiles:  []string{"./testdata/initial_data.sql"},
+			wantErr:    assert.Error,
+			wantDaoErr: daoerr.NewDaoError(daoerr.InvalidUUID, errors.New("invalid UUID length: 12")),
+			flagToCreate: model.FeatureFlag{
+				ID:          "invalid-uuid",
+				Name:        "my-new-feature-flag",
+				Description: testutils.String("This is a feature flag"),
+				Variations: &map[string]interface{}{
+					"variationA": 10,
+					"variationB": 120,
+				},
+				VariationType: "integer",
+				BucketingKey:  nil,
+				Metadata: &map[string]interface{}{
+					"key": "value",
+				},
+				TrackEvents:     testutils.Bool(true),
+				Disable:         testutils.Bool(false),
+				Version:         testutils.String("0.0.1"),
+				CreatedDate:     time.Date(2022, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastUpdatedDate: time.Date(2023, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastModifiedBy:  "foo",
+				DefaultRule: &model.Rule{
+					ID:              "6761c19f-1b74-49f1-9101-4c4aaa7e89e2",
+					Name:            "default-rule",
+					VariationResult: testutils.String("variationA"),
+				},
+			},
+		}, {
+			name:       "should return an error if no default rule is present",
+			initFiles:  []string{"./testdata/initial_data.sql"},
+			wantErr:    assert.Error,
+			wantDaoErr: daoerr.NewDaoError(daoerr.DefaultRuleRequired, errors.New("default rule is required")),
+			flagToCreate: model.FeatureFlag{
+				ID:          "6e0133ab-c262-4a0e-9eb1-79173c214921",
+				Name:        "my-new-feature-flag",
+				Description: testutils.String("This is a feature flag"),
+				Variations: &map[string]interface{}{
+					"variationA": 10,
+					"variationB": 120,
+				},
+				VariationType: "integer",
+				BucketingKey:  nil,
+				Metadata: &map[string]interface{}{
+					"key": "value",
+				},
+				TrackEvents:     testutils.Bool(true),
+				Disable:         testutils.Bool(false),
+				Version:         testutils.String("0.0.1"),
+				CreatedDate:     time.Date(2022, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastUpdatedDate: time.Date(2023, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastModifiedBy:  "foo",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pgContainer, conn := setupTest(t, tt.initFiles)
+			defer tearDownTest(t, pgContainer, conn)
+			pgDao := getPostgresDao(t, pgContainer)
+
+			got, err := pgDao.CreateFlag(context.TODO(), tt.flagToCreate)
+			tt.wantErr(t, err)
+			if err == nil {
+				assert.Equal(t, tt.wantUUID, got)
+			} else {
+				assert.Equal(t, tt.wantDaoErr.Code(), err.Code())
+				assert.Equal(t, tt.wantDaoErr.Error(), err.Error())
+			}
+		})
+	}
+
+}
+
+func TestDeleteFlagByID(t *testing.T) {
+	tests := []struct {
+		name       string
+		initFiles  []string
+		id         string
+		wantErr    assert.ErrorAssertionFunc
+		wantDaoErr daoerr.DaoError
+		want       model.FeatureFlag
+	}{
+		{
+			name:      "should return not error if the flag is not found",
+			initFiles: []string{"./testdata/initial_data.sql"},
+			wantErr:   assert.NoError,
+			id:        "546939a9-6df8-4a0b-b9cf-1d69ff300eb5",
+		}, {
+			name:      "should delete the flag if the flag is found",
+			initFiles: []string{"./testdata/initial_data.sql"},
+			wantErr:   assert.NoError,
+			id:        "69aa10ec-ec3e-4139-8cdf-6902a5746e2d",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pgContainer, conn := setupTest(t, tt.initFiles)
+			defer tearDownTest(t, pgContainer, conn)
+			pgDao := getPostgresDao(t, pgContainer)
+
+			err := pgDao.DeleteFlagByID(context.TODO(), tt.id)
+			tt.wantErr(t, err)
+			if err != nil {
+				assert.Equal(t, tt.wantDaoErr, err)
+			} else {
+				_, err := pgDao.GetFlagByID(context.TODO(), tt.id)
+				assert.Equal(t, err.Code(), daoerr.NotFound)
+			}
+		})
+	}
+
+}
+
+func TestUpdateFlag(t *testing.T) {
+	tests := []struct {
+		name         string
+		flagToUpdate model.FeatureFlag
+		initFiles    []string
+		want         model.FeatureFlag
+		wantErr      assert.ErrorAssertionFunc
+		wantDaoErr   daoerr.DaoError
+	}{
+		{
+			name:      "should update an existing flag",
+			initFiles: []string{"./testdata/initial_data.sql"},
+			wantErr:   assert.NoError,
+			flagToUpdate: model.FeatureFlag{
+				ID:          "69aa10ec-ec3e-4139-8cdf-6902a5746e2d",
+				Name:        "updated-name",
+				Description: testutils.String("Updated description"),
+				Variations: &map[string]interface{}{
+					"variationC": "110",
+					"variationD": "10",
+				},
+				VariationType: "string",
+				BucketingKey:  testutils.String("teamID"),
+				Metadata: &map[string]interface{}{
+					"metadata1": "1",
+					"metadata2": "2",
+					"metadata3": "3",
+				},
+				TrackEvents:     testutils.Bool(false),
+				Disable:         testutils.Bool(true),
+				Version:         testutils.String("0.0.1"),
+				CreatedDate:     time.Date(2023, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastUpdatedDate: time.Date(2024, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastModifiedBy:  "bar",
+				DefaultRule: &model.Rule{
+					ID:   "1cb941f2-adb4-460f-9259-b4416c90e9e1",
+					Name: "default-rule",
+					Percentages: &map[string]float64{
+						"variationC": 10,
+						"variationD": 90,
+					},
+				},
+				Rules: &[]model.Rule{
+					{
+						ID:      "8db65089-6785-4965-84a9-5d055469854b",
+						Name:    "rule FOO",
+						Query:   "targetingKey eq \"91011\"",
+						Disable: false,
+						Percentages: &map[string]float64{
+							"variationA": 10,
+							"variationB": 90,
+						},
+					},
+					{
+						ID:              "2300e15f-7755-4e39-b7c3-957f88f968bd",
+						Name:            "rule BAR",
+						Query:           "targetingKey eq \"5678\"",
+						Disable:         true,
+						VariationResult: testutils.String("variationD"),
+					},
+				},
+			},
+			want: model.FeatureFlag{
+				ID:          "69aa10ec-ec3e-4139-8cdf-6902a5746e2d",
+				Name:        "updated-name",
+				Description: testutils.String("Updated description"),
+				Variations: &map[string]interface{}{
+					"variationC": "110",
+					"variationD": "10",
+				},
+				VariationType: "string",
+				BucketingKey:  testutils.String("teamID"),
+				Metadata: &map[string]interface{}{
+					"metadata1": "1",
+					"metadata2": "2",
+					"metadata3": "3",
+				},
+				TrackEvents:     testutils.Bool(false),
+				Disable:         testutils.Bool(true),
+				Version:         testutils.String("0.0.1"),
+				CreatedDate:     time.Date(2020, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastUpdatedDate: time.Date(2024, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastModifiedBy:  "bar",
+				DefaultRule: &model.Rule{
+					ID:   "1cb941f2-adb4-460f-9259-b4416c90e9e1",
+					Name: "default-rule",
+					Percentages: &map[string]float64{
+						"variationC": 10,
+						"variationD": 90,
+					},
+				},
+				Rules: &[]model.Rule{
+					{
+						ID:      "8db65089-6785-4965-84a9-5d055469854b",
+						Name:    "rule FOO",
+						Query:   "targetingKey eq \"91011\"",
+						Disable: false,
+						Percentages: &map[string]float64{
+							"variationA": 10,
+							"variationB": 90,
+						},
+					},
+					{
+						ID:              "2300e15f-7755-4e39-b7c3-957f88f968bd",
+						Name:            "rule BAR",
+						Query:           "targetingKey eq \"5678\"",
+						Disable:         true,
+						VariationResult: testutils.String("variationD"),
+					},
+				},
+			},
+		}, {
+			name:       "should return an error if UUID not valid",
+			initFiles:  []string{"./testdata/initial_data.sql"},
+			wantErr:    assert.Error,
+			wantDaoErr: daoerr.NewDaoError(daoerr.InvalidUUID, errors.New("invalid UUID length: 12")),
+			flagToUpdate: model.FeatureFlag{
+				ID: "invalid-uuid",
+			},
+		}, {
+			name:       "should return an error if no default rule is present",
+			initFiles:  []string{"./testdata/initial_data.sql"},
+			wantErr:    assert.Error,
+			wantDaoErr: daoerr.NewDaoError(daoerr.DefaultRuleRequired, errors.New("default rule is required")),
+			flagToUpdate: model.FeatureFlag{
+				ID:          "69aa10ec-ec3e-4139-8cdf-6902a5746e2d",
+				Name:        "my-new-feature-flag",
+				Description: testutils.String("This is a feature flag"),
+				Variations: &map[string]interface{}{
+					"variationA": 10,
+					"variationB": 120,
+				},
+				VariationType: "integer",
+				BucketingKey:  nil,
+				Metadata: &map[string]interface{}{
+					"key": "value",
+				},
+				LastUpdatedDate: time.Date(2023, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastModifiedBy:  "foo",
+			},
+		}, {
+			name:      "should be able to add reorder and remove rules",
+			initFiles: []string{"./testdata/initial_data.sql"},
+			wantErr:   assert.NoError,
+			flagToUpdate: model.FeatureFlag{
+				ID:          "69aa10ec-ec3e-4139-8cdf-6902a5746e2d",
+				Name:        "updated-name",
+				Description: testutils.String("Updated description"),
+				Variations: &map[string]interface{}{
+					"variationC": "110",
+					"variationD": "10",
+				},
+				VariationType: "string",
+				BucketingKey:  testutils.String("teamID"),
+				Metadata: &map[string]interface{}{
+					"metadata1": "1",
+					"metadata2": "2",
+					"metadata3": "3",
+				},
+				TrackEvents:     testutils.Bool(false),
+				Disable:         testutils.Bool(true),
+				Version:         testutils.String("0.0.1"),
+				CreatedDate:     time.Date(2023, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastUpdatedDate: time.Date(2024, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastModifiedBy:  "bar",
+				DefaultRule: &model.Rule{
+					ID:   "1cb941f2-adb4-460f-9259-b4416c90e9e1",
+					Name: "default-rule",
+					Percentages: &map[string]float64{
+						"variationC": 10,
+						"variationD": 90,
+					},
+				},
+				Rules: &[]model.Rule{
+					{
+						ID:              "546939a9-6df8-4a0b-b9cf-1d69ff300eb5",
+						Name:            "rule FOO",
+						Query:           "targetingKey eq \"91011\"",
+						Disable:         false,
+						VariationResult: testutils.String("variationC"),
+					},
+					{
+						ID:              "0734784b-d44e-43f7-a0b3-fa85e1c240df",
+						Name:            "rule RANDOM 1",
+						Query:           "targetingKey eq \"toto\"",
+						Disable:         false,
+						VariationResult: testutils.String("variationD"),
+					},
+				},
+			},
+			want: model.FeatureFlag{
+				ID:          "69aa10ec-ec3e-4139-8cdf-6902a5746e2d",
+				Name:        "updated-name",
+				Description: testutils.String("Updated description"),
+				Variations: &map[string]interface{}{
+					"variationC": "110",
+					"variationD": "10",
+				},
+				VariationType: "string",
+				BucketingKey:  testutils.String("teamID"),
+				Metadata: &map[string]interface{}{
+					"metadata1": "1",
+					"metadata2": "2",
+					"metadata3": "3",
+				},
+				TrackEvents:     testutils.Bool(false),
+				Disable:         testutils.Bool(true),
+				Version:         testutils.String("0.0.1"),
+				CreatedDate:     time.Date(2020, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastUpdatedDate: time.Date(2024, 1, 1, 0, 0, 0, 0, time.FixedZone("", 0)),
+				LastModifiedBy:  "bar",
+				DefaultRule: &model.Rule{
+					ID:   "1cb941f2-adb4-460f-9259-b4416c90e9e1",
+					Name: "default-rule",
+					Percentages: &map[string]float64{
+						"variationC": 10,
+						"variationD": 90,
+					},
+				},
+				Rules: &[]model.Rule{
+					{
+						ID:              "546939a9-6df8-4a0b-b9cf-1d69ff300eb5",
+						Name:            "rule FOO",
+						Query:           "targetingKey eq \"91011\"",
+						Disable:         false,
+						VariationResult: testutils.String("variationC"),
+					},
+					{
+						ID:              "0734784b-d44e-43f7-a0b3-fa85e1c240df",
+						Name:            "rule RANDOM 1",
+						Query:           "targetingKey eq \"toto\"",
+						Disable:         false,
+						VariationResult: testutils.String("variationD"),
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pgContainer, conn := setupTest(t, tt.initFiles)
+			defer tearDownTest(t, pgContainer, conn)
+			pgDao := getPostgresDao(t, pgContainer)
+
+			err := pgDao.UpdateFlag(context.TODO(), tt.flagToUpdate)
+			tt.wantErr(t, err)
+			if err == nil {
+				got, err := pgDao.GetFlagByID(context.TODO(), tt.flagToUpdate.ID)
+				require.NoError(t, err)
+				assert.Equal(t, tt.want, got)
+			} else {
+				assert.Equal(t, tt.wantDaoErr.Error(), err.Error())
+				assert.Equal(t, tt.wantDaoErr.Code(), err.Code())
+			}
 		})
 	}
 
