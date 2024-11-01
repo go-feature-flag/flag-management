@@ -56,7 +56,7 @@ func (s *Server) configure() {
 func (s *Server) Start() {
 	s.configure()
 	// start the server
-	s.apiEcho.Logger.Fatal(s.apiEcho.Start(s.serverAddress))
+	s.apiEcho.Logger.Error(s.apiEcho.Start(s.serverAddress))
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
