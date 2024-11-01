@@ -229,7 +229,7 @@ func (f FlagAPIHandler) DeleteFlagByID(c echo.Context) error {
 	if err != nil {
 		return f.handleDaoError(c, err)
 	}
-	return c.JSON(http.StatusNoContent, nil)
+	return c.NoContent(http.StatusNoContent)
 }
 
 // UpdateFeatureFlagStatus is updating the flag status with the given ID
