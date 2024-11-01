@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-feature-flag/app-api/api"
 	"github.com/go-feature-flag/app-api/dao"
@@ -15,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setUpTest(t *testing.T) api.Server {
+func setUpTest(t *testing.T) (api.Server, int) {
 	// init the in-memory mock dao
 	dbImpl, err := dao.NewInMemoryMockDao()
 	dbImpl.SetFlags(testutils.DefaultInMemoryFlags())
@@ -28,14 +29,16 @@ func setUpTest(t *testing.T) api.Server {
 	flagHandlers := handler.NewFlagAPIHandler(dbImpl, options)
 	healthHandlers := handler.NewHealth(dbImpl)
 
+	port, err := testutils.GetFreePort()
+	require.NoError(t, err)
 	// port is not important since we are not really starting the server in the tests
-	apiServer := api.New(":0", flagHandlers, healthHandlers)
+	apiServer := api.New(fmt.Sprintf(":%d", port), flagHandlers, healthHandlers)
 	require.NotNil(t, apiServer)
-	return *apiServer
+	return *apiServer, port
 }
 
 func TestHealthRouteExist(t *testing.T) {
-	apiServer := setUpTest(t)
+	apiServer, _ := setUpTest(t)
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	rec := httptest.NewRecorder()
 	apiServer.ServeHTTP(rec, req)
@@ -44,7 +47,7 @@ func TestHealthRouteExist(t *testing.T) {
 }
 
 func TestRouteExist(t *testing.T) {
-	apiServer := setUpTest(t)
+	apiServer, _ := setUpTest(t)
 	tests := []struct {
 		name     string
 		method   string
@@ -129,4 +132,27 @@ func TestRouteExist(t *testing.T) {
 			assert.JSONEq(t, tt.wantBody, rec.Body.String())
 		})
 	}
+}
+
+func TestServerIsStartingAndStopping(t *testing.T) {
+	apiServer, port := setUpTest(t)
+	require.NotNil(t, apiServer)
+
+	go apiServer.Start()
+	// wait for the server to start or fail after 4 seconds
+	time.Sleep(2 * time.Second)
+
+	url := fmt.Sprintf("http://localhost:%d/health", port)
+	req, err := http.NewRequest(http.MethodGet, url, strings.NewReader(""))
+	require.NoError(t, err)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	errStop := apiServer.Stop()
+	require.NoError(t, errStop)
+	time.Sleep(2 * time.Second)
+	_, err = http.DefaultClient.Do(req)
+	assert.Error(t, err)
 }
