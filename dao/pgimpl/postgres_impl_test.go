@@ -943,5 +943,11 @@ func TestUpdateFlag(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestPingSuccess(t *testing.T) {
+	pgContainer, conn := setupTest(t, []string{})
+	defer tearDownTest(t, pgContainer, conn)
+	pgDao := getPostgresDao(t, pgContainer)
+	assert.NoError(t, pgDao.Ping())
 }
