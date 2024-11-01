@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+
 	_ "github.com/go-feature-flag/app-api/docs"
 	"github.com/go-feature-flag/app-api/handler"
 	"github.com/labstack/echo/v4"
@@ -26,8 +28,7 @@ type Server struct {
 	serverAddress  string
 }
 
-// Start starts the API server
-func (s *Server) Start() {
+func (s *Server) configure() {
 	// config echo
 	s.apiEcho.HideBanner = true
 	s.apiEcho.HidePort = true
@@ -49,9 +50,18 @@ func (s *Server) Start() {
 
 	// TODO: conditionally enable swagger based on configuration
 	s.apiEcho.GET("/swagger/*", echoSwagger.WrapHandler)
+}
 
+// Start starts the API server
+func (s *Server) Start() {
+	s.configure()
 	// start the server
 	s.apiEcho.Logger.Fatal(s.apiEcho.Start(s.serverAddress))
+}
+
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.configure()
+	s.apiEcho.ServeHTTP(w, r)
 }
 
 // Stop stops the API server
