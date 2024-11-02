@@ -18,13 +18,13 @@ type FlagAPIHandlerOptions struct {
 }
 
 type FlagAPIHandler struct {
-	dao     dao.Flags
+	dao     dao.FlagStorage
 	options *FlagAPIHandlerOptions
 }
 
 // NewFlagAPIHandler creates a new instance of the FlagAPIHandler handler
 // It is a controller class to handle the feature flag configuration logic
-func NewFlagAPIHandler(dao dao.Flags, options *FlagAPIHandlerOptions) FlagAPIHandler {
+func NewFlagAPIHandler(dao dao.FlagStorage, options *FlagAPIHandlerOptions) FlagAPIHandler {
 	if options == nil {
 		options = &FlagAPIHandlerOptions{}
 	}

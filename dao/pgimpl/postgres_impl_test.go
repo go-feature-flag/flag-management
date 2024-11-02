@@ -85,7 +85,7 @@ func tearDownTest(t *testing.T, pgContainer *testcontainerPostgres.PostgresConta
 	require.NoError(t, err, "Failed to stop Postgres container")
 }
 
-func getPostgresDao(t *testing.T, pgContainer *testcontainerPostgres.PostgresContainer) dao.Flags {
+func getPostgresDao(t *testing.T, pgContainer *testcontainerPostgres.PostgresContainer) dao.FlagStorage {
 	mappedPort, err := pgContainer.MappedPort(context.Background(), "5432")
 	require.NoError(t, err, "Failed to get mapped port")
 	port, _ := strconv.Atoi(mappedPort.Port())
