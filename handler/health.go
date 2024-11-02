@@ -23,7 +23,7 @@ type successResponse struct {
 }
 
 // Health is the health endpoint of the API
-// @Summary      HealthHandler endpoint of the API
+// @Summary      Health endpoint of the API
 // @Tags Feature Monitoring
 // @Description  Check if the API is up and running and that the database is available.
 // @Success      200  {object} successResponse "Created"
