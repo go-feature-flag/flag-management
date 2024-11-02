@@ -11,19 +11,25 @@ import (
 )
 
 // New creates a new instance of the API server
-func New(serverAddress string, flagHandlers handler.FlagAPIHandler, healthHandlers handler.Health) *Server {
+func New(serverAddress string, handlers handler.Handlers) (*Server, error) {
+	if handlers.HealthHandler == nil {
+		return nil, handler.ErrMissingHealthHandler
+	}
+	if handlers.FlagAPIHandler == nil {
+		return nil, handler.ErrMissingFlagAPIHandler
+	}
 	return &Server{
-		flagHandlers:   flagHandlers,
-		healthHandlers: healthHandlers,
+		flagHandlers:   handlers.FlagAPIHandler,
+		healthHandlers: handlers.HealthHandler,
 		apiEcho:        echo.New(),
 		serverAddress:  serverAddress,
-	}
+	}, nil
 }
 
 // Server is the struct that represents the API server
 type Server struct {
-	flagHandlers   handler.FlagAPIHandler
-	healthHandlers handler.Health
+	flagHandlers   *handler.FlagAPIHandler
+	healthHandlers *handler.HealthHandler
 	apiEcho        *echo.Echo
 	serverAddress  string
 }

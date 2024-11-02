@@ -7,7 +7,7 @@ import (
 	"github.com/go-feature-flag/app-api/model"
 )
 
-type Flags interface {
+type FlagStorage interface {
 	// GetFlags return all the flags
 	GetFlags(ctx context.Context) ([]model.FeatureFlag, daoErr.DaoError)
 

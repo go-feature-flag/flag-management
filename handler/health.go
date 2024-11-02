@@ -8,13 +8,13 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type Health struct {
-	dao dao.Flags
+type HealthHandler struct {
+	dao dao.FlagStorage
 }
 
-// NewHealth creates a new instance of the Health handlers
-func NewHealth(dao dao.Flags) Health {
-	return Health{dao: dao}
+// NewHealthHandler creates a new instance of the HealthHandler handlers
+func NewHealthHandler(dao dao.FlagStorage) HealthHandler {
+	return HealthHandler{dao: dao}
 }
 
 type successResponse struct {
@@ -29,7 +29,7 @@ type successResponse struct {
 // @Success      200  {object} successResponse "Created"
 // @Failure      500 {object} model.HTTPError "Internal server error"
 // @Router       /health [get]
-func (f Health) Health(c echo.Context) error {
+func (f HealthHandler) Health(c echo.Context) error {
 	err := f.dao.Ping()
 	if err != nil {
 		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))

@@ -15,7 +15,7 @@ import (
 	_ "github.com/lib/pq" // we import the driver used by sqlx
 )
 
-func NewPostgresDao(host string, port int, dbName string, username string, password string) (dao.Flags, error) {
+func NewPostgresDao(host string, port int, dbName string, username string, password string) (dao.FlagStorage, error) {
 	if host == "" {
 		return nil, fmt.Errorf("host is empty")
 	}

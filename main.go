@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/go-feature-flag/app-api/api"
-	"github.com/go-feature-flag/app-api/dao/pgimpl"
-	"github.com/go-feature-flag/app-api/handler"
+	"log"
+
+	"github.com/go-feature-flag/app-api/cmd"
 )
 
 // version, releaseDate are override by the makefile during the build.
@@ -21,15 +21,9 @@ var version = "localdev"
 // @in header
 // @name Authorization
 func main() {
-	// TODO: add configuration management for the API server.
-	data, err := pgimpl.NewPostgresDao("localhost", 5432, "gofeatureflag", "goff-user", "my-secret-pw")
+	command, err := cmd.NewGOFeatureFlagManagementAPICommand(cmd.APICommandOptions{})
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	flagHandlers := handler.NewFlagAPIHandler(data, &handler.FlagAPIHandlerOptions{})
-	healthHandlers := handler.NewHealth(data)
-
-	apiServer := api.New(":3001", flagHandlers, healthHandlers)
-	apiServer.Start()
-	defer func() { apiServer.Stop() }()
+	command.Run()
 }

@@ -19,7 +19,7 @@ func TestHealthHandler_Health(t *testing.T) {
 		require.NoError(t, err)
 		mockDao.OnPingReturnError(false)
 
-		h := NewHealth(mockDao)
+		h := NewHealthHandler(mockDao)
 		req := httptest.NewRequest(http.MethodGet, "/health", nil)
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
@@ -34,7 +34,7 @@ func TestHealthHandler_Health(t *testing.T) {
 		require.NoError(t, err)
 		mockDao.OnPingReturnError(true)
 
-		h := NewHealth(mockDao)
+		h := NewHealthHandler(mockDao)
 		req := httptest.NewRequest(http.MethodGet, "/health", nil)
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)

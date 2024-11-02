@@ -26,12 +26,18 @@ func setUpTest(t *testing.T) (api.Server, int) {
 	options := &handler.FlagAPIHandlerOptions{
 		Clock: testutils.ClockMock{},
 	}
+
 	flagHandlers := handler.NewFlagAPIHandler(dbImpl, options)
-	healthHandlers := handler.NewHealth(dbImpl)
+	healthHandlers := handler.NewHealthHandler(dbImpl)
+	h := handler.Handlers{
+		FlagAPIHandler: &flagHandlers,
+		HealthHandler:  &healthHandlers,
+	}
 
 	port, err := testutils.GetFreePort()
 	require.NoError(t, err)
-	apiServer := api.New(fmt.Sprintf(":%d", port), flagHandlers, healthHandlers)
+	apiServer, err := api.New(fmt.Sprintf(":%d", port), h)
+	require.NoError(t, err)
 	require.NotNil(t, apiServer)
 	return *apiServer, port
 }
@@ -154,4 +160,52 @@ func TestServerIsStartingAndStopping(t *testing.T) {
 	time.Sleep(2 * time.Second)
 	_, err = http.DefaultClient.Do(req)
 	assert.Error(t, err)
+}
+
+func TestNoValidHandlers(t *testing.T) {
+	daomock, _ := dao.NewInMemoryMockDao()
+	mockHandlers, err := handler.InitHandlers(daomock)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name        string
+		handlers    handler.Handlers
+		wantErr     assert.ErrorAssertionFunc
+		expectedErr error
+	}{
+		{
+			name: "no health handler",
+			handlers: handler.Handlers{
+				FlagAPIHandler: mockHandlers.FlagAPIHandler,
+			},
+			wantErr:     assert.Error,
+			expectedErr: handler.ErrMissingHealthHandler,
+		},
+		{
+			name: "no flag handler",
+			handlers: handler.Handlers{
+				HealthHandler: mockHandlers.HealthHandler,
+			},
+			wantErr:     assert.Error,
+			expectedErr: handler.ErrMissingFlagAPIHandler,
+		},
+		{
+			name: "all handlers provided",
+			handlers: handler.Handlers{
+				HealthHandler:  mockHandlers.HealthHandler,
+				FlagAPIHandler: mockHandlers.FlagAPIHandler,
+			},
+			wantErr: assert.NoError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := api.New(":8080", tt.handlers)
+			tt.wantErr(t, err)
+			if tt.expectedErr != nil {
+				assert.Equal(t, tt.expectedErr, err)
+			}
+		})
+	}
 }
