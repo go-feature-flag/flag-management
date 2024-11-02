@@ -21,8 +21,9 @@ var version = "localdev"
 // @in header
 // @name Authorization
 func main() {
-	command := cmd.NewGOFeatureFlagManagementAPICommand()
-	if err := command.Run(); err != nil {
+	command, err := cmd.NewGOFeatureFlagManagementAPICommand(cmd.APICommandOptions{})
+	if err != nil {
 		log.Fatal(err)
 	}
+	command.Run()
 }
