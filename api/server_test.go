@@ -26,12 +26,18 @@ func setUpTest(t *testing.T) (api.Server, int) {
 	options := &handler.FlagAPIHandlerOptions{
 		Clock: testutils.ClockMock{},
 	}
+
 	flagHandlers := handler.NewFlagAPIHandler(dbImpl, options)
-	healthHandlers := handler.NewHealth(dbImpl)
+	healthHandlers := handler.NewHealthHandler(dbImpl)
+	h := handler.Handlers{
+		FlagAPIHandler: &flagHandlers,
+		HealthHandler:  &healthHandlers,
+	}
 
 	port, err := testutils.GetFreePort()
 	require.NoError(t, err)
-	apiServer := api.New(fmt.Sprintf(":%d", port), flagHandlers, healthHandlers)
+	apiServer, err := api.New(fmt.Sprintf(":%d", port), h)
+	require.NoError(t, err)
 	require.NotNil(t, apiServer)
 	return *apiServer, port
 }
