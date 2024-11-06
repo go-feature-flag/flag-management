@@ -1,11 +1,14 @@
 package cmd_test
 
 import (
+	"net/http"
 	"testing"
+	"time"
 
 	"github.com/go-feature-flag/app-api/cmd"
 	"github.com/go-feature-flag/app-api/dao"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewGOFeatureFlagManagementAPICommand(t *testing.T) {
@@ -41,4 +44,18 @@ func TestNewGOFeatureFlagManagementAPICommand(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNewGOFeatureFlagManagementAPICommandShouldStartAPI(t *testing.T) {
+	mockDao, _ := dao.NewInMemoryMockDao()
+	defaultOptions := cmd.APICommandOptions{
+		OverrideDefaultDao: mockDao,
+	}
+	cli, err := cmd.NewGOFeatureFlagManagementAPICommand(defaultOptions)
+	require.NoError(t, err)
+	go cli.Run()
+	time.Sleep(200 * time.Millisecond)
+	resp, err := http.Get("http://localhost:3001/health")
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
