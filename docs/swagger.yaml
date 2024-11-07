@@ -3,8 +3,19 @@ definitions:
   handler.successResponse:
     properties:
       code:
+        example: 200
         type: integer
       message:
+        example: API is up and running
+        type: string
+    type: object
+  model.ErrorResponse:
+    properties:
+      code:
+        example: 500
+        type: integer
+      errorDetails:
+        example: An error occurred
         type: string
     type: object
   model.FeatureFlag:
@@ -84,15 +95,6 @@ definitions:
     - FlagTypeInteger
     - FlagTypeDouble
     - FlagTypeJSON
-  model.HTTPError:
-    properties:
-      code:
-        example: 500
-        type: integer
-      errorDetails:
-        example: An error occurred
-        type: string
-    type: object
   model.ProgressiveRollout:
     properties:
       end:
@@ -183,7 +185,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
       summary: Health endpoint of the API
       tags:
       - Feature Monitoring
@@ -200,7 +202,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
       summary: Return all the flags available
       tags:
       - Feature Flag management API
@@ -223,16 +225,16 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
         "409":
           description: Conflict - when trying to insert a flag with a name that already
             exists
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
       summary: Create a new feature flag with the given configuration.
       tags:
       - Feature Flag management API
@@ -253,15 +255,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
       summary: Delete the flag with the given ID
       tags:
       - Feature Flag management API
@@ -281,11 +283,11 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
       summary: Return all the information about a flag
       tags:
       - Feature Flag management API
@@ -312,15 +314,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
       summary: Updates the flag with the given ID
       tags:
       - Feature Flag management API
@@ -347,15 +349,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.HTTPError'
+            $ref: '#/definitions/model.ErrorResponse'
       summary: Update the status of the flag with the given ID
       tags:
       - Feature Flag management API
