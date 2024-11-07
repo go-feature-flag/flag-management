@@ -7,7 +7,7 @@ import (
 	"github.com/go-feature-flag/app-api/handler"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/swaggo/echo-swagger"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 // New creates a new instance of the API server
@@ -38,6 +38,7 @@ func (s *Server) configure() {
 	// config echo
 	s.apiEcho.HideBanner = true
 	s.apiEcho.HidePort = true
+	s.apiEcho.HTTPErrorHandler = customHTTPErrorHandler
 
 	// Middlewares
 	s.apiEcho.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
@@ -45,17 +46,20 @@ func (s *Server) configure() {
 	// init health routes
 	s.apiEcho.GET("/health", s.healthHandlers.Health)
 
+	// TODO: conditionally enable swagger based on configuration
+	s.apiEcho.GET("/swagger/*", echoSwagger.WrapHandler)
+
 	// init API routes
 	groupV1 := s.apiEcho.Group("/v1")
+	//groupV1.Use(echojwt.WithConfig(echojwt.Config{
+	//	SigningKey: []byte("JKapFhI4Srnos8Exdxm7IOQAt7fjgJDU"),
+	//}))
 	groupV1.GET("/flags", s.flagHandlers.GetAllFeatureFlags)
 	groupV1.GET("/flags/:id", s.flagHandlers.GetFeatureFlagByID)
 	groupV1.POST("/flags", s.flagHandlers.CreateNewFlag)
 	groupV1.PUT("/flags/:id", s.flagHandlers.UpdateFlagByID)
 	groupV1.DELETE("/flags/:id", s.flagHandlers.DeleteFlagByID)
 	groupV1.PATCH("/flags/:id/status", s.flagHandlers.UpdateFeatureFlagStatus)
-
-	// TODO: conditionally enable swagger based on configuration
-	s.apiEcho.GET("/swagger/*", echoSwagger.WrapHandler)
 }
 
 // Start starts the API server

@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/go-feature-flag/app-api/dao"
-	"github.com/go-feature-flag/app-api/model"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,8 +17,8 @@ func NewHealthHandler(dao dao.FlagStorage) HealthHandler {
 }
 
 type successResponse struct {
-	Message string `json:"message"`
-	Code    int    `json:"code"`
+	Message string `json:"message" example:"API is up and running"`
+	Code    int    `json:"code" example:"200"`
 }
 
 // Health is the health endpoint of the API
@@ -27,12 +26,12 @@ type successResponse struct {
 // @Tags Feature Monitoring
 // @Description  Check if the API is up and running and that the database is available.
 // @Success      200  {object} successResponse "Created"
-// @Failure      500 {object} model.HTTPError "Internal server error"
+// @Failure      500 {object} model.ErrorResponse "Internal server error"
 // @Router       /health [get]
 func (f HealthHandler) Health(c echo.Context) error {
 	err := f.dao.Ping()
 	if err != nil {
-		return c.JSON(model.NewHTTPError(http.StatusInternalServerError, err))
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusOK, successResponse{
 		Message: "API is up and running",
