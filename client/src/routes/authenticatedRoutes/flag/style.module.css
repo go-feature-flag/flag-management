@@ -1,0 +1,9 @@
+.breadcrumbItem span{
+    @apply lg:text-lg;
+    @apply text-base;
+    @apply font-light;
+}
+
+.settingTitle {
+    @apply mb-3;
+}

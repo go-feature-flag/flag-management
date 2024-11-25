@@ -1,0 +1,7 @@
+.betweenRules{
+  @apply pt-1;
+  @apply pb-2;
+  @apply justify-items-start;
+  @apply items-center;
+  @apply flex;
+}
