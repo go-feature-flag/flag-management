@@ -39,7 +39,7 @@ func NewFlagAPIHandler(dao dao.FlagStorage, options *FlagAPIHandlerOptions) Flag
 // @Tags Feature Flag management API
 // @Description  GET request to get all the flags available.
 // @Success      200  {object} []model.FeatureFlag "Success"
-// @Failure      500 {object} model.ErrorResponse "Internal server error"
+// @Failure      500 {object} api.CustomErr "Internal server error"
 // @Router       /v1/flags [get]
 func (f FlagAPIHandler) GetAllFeatureFlags(c echo.Context) error {
 	flags, err := f.dao.GetFlags(c.Request().Context())
@@ -55,8 +55,8 @@ func (f FlagAPIHandler) GetAllFeatureFlags(c echo.Context) error {
 // @Description  GET all the information about a flag with a specific .
 // @Param        id path string true "ID of the feature flag"
 // @Success      200  {object} model.FeatureFlag "Success"
-// @Failure      404 {object} model.ErrorResponse "Not Found"
-// @Failure      500 {object} model.ErrorResponse "Internal server error"
+// @Failure      404 {object} api.CustomErr "Not Found"
+// @Failure      500 {object} api.CustomErr "Internal server error"
 // @Router       /v1/flags/{id} [get]
 func (f FlagAPIHandler) GetFeatureFlagByID(c echo.Context) error {
 	flag, err := f.dao.GetFlagByID(c.Request().Context(), c.Param("id"))
@@ -73,9 +73,9 @@ func (f FlagAPIHandler) GetFeatureFlagByID(c echo.Context) error {
 // @Description  and it will add all the associated rules too.
 // @Param 		 data body model.FeatureFlag true "Payload which represents the flag to insert"
 // @Success      201  {object} model.FeatureFlag "Created"
-// @Failure      400 {object} model.ErrorResponse "Bad Request"
-// @Failure      409 {object} model.ErrorResponse "Conflict - when trying to insert a flag with a name that already exists"
-// @Failure      500 {object} model.ErrorResponse "Internal server error"
+// @Failure      400 {object} api.CustomErr "Bad Request"
+// @Failure      409 {object} api.CustomErr "Conflict - when trying to insert a flag with a name that already exists"
+// @Failure      500 {object} api.CustomErr "Internal server error"
 // @Router       /v1/flags [post]
 func (f FlagAPIHandler) CreateNewFlag(c echo.Context) error {
 	var flag model.FeatureFlag
@@ -180,9 +180,9 @@ func validateRule(rule *model.Rule, isDefault bool) (int, error) {
 // @Param        id path string true "ID of the feature flag"
 // @Param 		 data body model.FeatureFlag true "Payload which represents the flag to update"
 // @Success      200  {object} model.FeatureFlag "Success"
-// @Failure      400 {object} model.ErrorResponse "Bad Request"
-// @Failure      404 {object} model.ErrorResponse "Not Found"
-// @Failure      500 {object} model.ErrorResponse "Internal server error"
+// @Failure      400 {object} api.CustomErr "Bad Request"
+// @Failure      404 {object} api.CustomErr "Not Found"
+// @Failure      500 {object} api.CustomErr "Internal server error"
 // @Router       /v1/flags/{id} [put]
 func (f FlagAPIHandler) UpdateFlagByID(c echo.Context) error {
 	retrievedFlag, err := f.dao.GetFlagByID(c.Request().Context(), c.Param("id"))
@@ -219,9 +219,9 @@ func (f FlagAPIHandler) UpdateFlagByID(c echo.Context) error {
 // @Description  DELETE - Delete the flag with the given ID.
 // @Param        id path string true "ID of the feature flag"
 // @Success      204  {object} model.FeatureFlag "No Content"
-// @Failure      400 {object} model.ErrorResponse "Bad Request"
-// @Failure      404 {object} model.ErrorResponse "Not Found"
-// @Failure      500 {object} model.ErrorResponse "Internal server error"
+// @Failure      400 {object} api.CustomErr "Bad Request"
+// @Failure      404 {object} api.CustomErr "Not Found"
+// @Failure      500 {object} api.CustomErr "Internal server error"
 // @Router       /v1/flags/{id} [delete]
 func (f FlagAPIHandler) DeleteFlagByID(c echo.Context) error {
 	idParam := c.Param("id")
@@ -239,9 +239,9 @@ func (f FlagAPIHandler) DeleteFlagByID(c echo.Context) error {
 // @Param        id path string true "ID of the feature flag"
 // @Param 		 data body model.FeatureFlagStatusUpdate true "The patch query to update the flag status"
 // @Success      200  {object} model.FeatureFlag "Success"
-// @Failure      400 {object} model.ErrorResponse "Bad Request"
-// @Failure      404 {object} model.ErrorResponse "Not Found"
-// @Failure      500 {object} model.ErrorResponse "Internal server error"
+// @Failure      400 {object} api.CustomErr "Bad Request"
+// @Failure      404 {object} api.CustomErr "Not Found"
+// @Failure      500 {object} api.CustomErr "Internal server error"
 // @Router       /v1/flags/{id}/status [patch]
 func (f FlagAPIHandler) UpdateFeatureFlagStatus(c echo.Context) error {
 	idParam := c.Param("id")

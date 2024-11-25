@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type customErr struct {
+type CustomErr struct {
 	Code         int    `json:"code"`
 	ErrorDetails string `json:"errorDetails"`
 }
@@ -16,14 +16,14 @@ type customErr struct {
 func customHTTPErrorHandler(err error, c echo.Context) {
 	var he *echo.HTTPError
 	if errors.As(err, &he) {
-		_ = c.JSON(he.Code, customErr{
+		_ = c.JSON(he.Code, CustomErr{
 			Code:         he.Code,
 			ErrorDetails: fmt.Sprintf("%v", he.Message),
 		})
 		return
 	}
 
-	_ = c.JSON(http.StatusInternalServerError, customErr{
+	_ = c.JSON(http.StatusInternalServerError, CustomErr{
 		Code:         http.StatusInternalServerError,
 		ErrorDetails: "Internal server error: " + err.Error(),
 	})

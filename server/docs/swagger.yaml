@@ -1,5 +1,12 @@
 basePath: /
 definitions:
+  api.CustomErr:
+    properties:
+      code:
+        type: integer
+      errorDetails:
+        type: string
+    type: object
   handler.successResponse:
     properties:
       code:
@@ -7,15 +14,6 @@ definitions:
         type: integer
       message:
         example: API is up and running
-        type: string
-    type: object
-  model.ErrorResponse:
-    properties:
-      code:
-        example: 500
-        type: integer
-      errorDetails:
-        example: An error occurred
         type: string
     type: object
   model.FeatureFlag:
@@ -185,7 +183,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
       summary: Health endpoint of the API
       tags:
       - Feature Monitoring
@@ -202,7 +200,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
       summary: Return all the flags available
       tags:
       - Feature Flag management API
@@ -225,16 +223,16 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
         "409":
           description: Conflict - when trying to insert a flag with a name that already
             exists
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
       summary: Create a new feature flag with the given configuration.
       tags:
       - Feature Flag management API
@@ -255,15 +253,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
       summary: Delete the flag with the given ID
       tags:
       - Feature Flag management API
@@ -283,11 +281,11 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
       summary: Return all the information about a flag
       tags:
       - Feature Flag management API
@@ -314,15 +312,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
       summary: Updates the flag with the given ID
       tags:
       - Feature Flag management API
@@ -349,15 +347,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/model.ErrorResponse'
+            $ref: '#/definitions/api.CustomErr'
       summary: Update the status of the flag with the given ID
       tags:
       - Feature Flag management API
