@@ -27,15 +27,7 @@ vendor/
 
 # binaries
 release/
-server/cmd/migrationcli/migrationcli
-server/cmd/relayproxy/relayproxy
 tmp/
-
-# Local dev files
-goff-proxy.yaml
-flags.yaml
-
-go-feature-flag-relay-proxy/
 
 # AWS SAM build folder
 .aws-sam
