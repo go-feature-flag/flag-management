@@ -1,9 +1,8 @@
 package main
 
 import (
+	"github.com/go-feature-flag/flag-management/server/cmd"
 	"log"
-
-	"github.com/go-feature-flag/app-api/cmd"
 )
 
 // version, releaseDate are override by the makefile during the build.

@@ -27,8 +27,8 @@ vendor/
 
 # binaries
 release/
-cmd/migrationcli/migrationcli
-cmd/relayproxy/relayproxy
+server/cmd/migrationcli/migrationcli
+server/cmd/relayproxy/relayproxy
 tmp/
 
 # Local dev files

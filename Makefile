@@ -19,8 +19,8 @@ build: build-api ## Build all the binaries and put the output in out/bin/
 create-out-dir:
 	mkdir -p out/bin
 
-build-api: create-out-dir ## Build the migration cli in out/bin/
-	CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build -mod vendor -o out/bin/goff-api .
+build-server: create-out-dir ## Build the migration cli in out/bin/
+	CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build -mod vendor -o out/bin/flag-management-api .
 
 clean: ## Remove build related file
 	-rm -fr ./bin ./out ./release
@@ -33,7 +33,7 @@ vendor: ## Copy of all packages needed to support builds and tests in the vendor
 ## Dev:
 swagger: ## Build swagger documentation
 	$(GOCMD) install github.com/swaggo/swag/cmd/swag@latest
-	swag init --parseInternal --markdownFiles docs
+	swag init --parseInternal --markdownFiles server/docs --output server/docs
 
 setup-env:
 	docker stop goff || true
