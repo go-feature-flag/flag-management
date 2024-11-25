@@ -1,4 +1,4 @@
-module github.com/go-feature-flag/app-api
+module github.com/go-feature-flag/flag-management
 
 go 1.23.2
 
