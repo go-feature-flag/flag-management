@@ -3,15 +3,17 @@ package api
 import (
 	"net/http"
 
+	"github.com/go-feature-flag/app-api/config"
 	_ "github.com/go-feature-flag/app-api/docs"
 	"github.com/go-feature-flag/app-api/handler"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 // New creates a new instance of the API server
-func New(serverAddress string, handlers handler.Handlers) (*Server, error) {
+func New(configuration config.Configuration, handlers handler.Handlers) (*Server, error) {
 	if handlers.HealthHandler == nil {
 		return nil, handler.ErrMissingHealthHandler
 	}
@@ -22,7 +24,7 @@ func New(serverAddress string, handlers handler.Handlers) (*Server, error) {
 		flagHandlers:   handlers.FlagAPIHandler,
 		healthHandlers: handlers.HealthHandler,
 		apiEcho:        echo.New(),
-		serverAddress:  serverAddress,
+		configuration:  configuration,
 	}, nil
 }
 
@@ -31,7 +33,7 @@ type Server struct {
 	flagHandlers   *handler.FlagAPIHandler
 	healthHandlers *handler.HealthHandler
 	apiEcho        *echo.Echo
-	serverAddress  string
+	configuration  config.Configuration
 }
 
 func (s *Server) configure() {
@@ -51,9 +53,12 @@ func (s *Server) configure() {
 
 	// init API routes
 	groupV1 := s.apiEcho.Group("/v1")
-	//groupV1.Use(echojwt.WithConfig(echojwt.Config{
-	//	SigningKey: []byte("JKapFhI4Srnos8Exdxm7IOQAt7fjgJDU"),
-	//}))
+	groupV1.Use(echojwt.WithConfig(echojwt.Config{
+		Skipper: func(c echo.Context) bool {
+			return s.configuration.Mode == config.Development
+		},
+		SigningKey: []byte("JKapFhI4Srnos8Exdxm7IOQAt7fjgJDU"),
+	}))
 	groupV1.GET("/flags", s.flagHandlers.GetAllFeatureFlags)
 	groupV1.GET("/flags/:id", s.flagHandlers.GetFeatureFlagByID)
 	groupV1.POST("/flags", s.flagHandlers.CreateNewFlag)
@@ -66,7 +71,7 @@ func (s *Server) configure() {
 func (s *Server) Start() {
 	s.configure()
 	// start the server
-	s.apiEcho.Logger.Error(s.apiEcho.Start(s.serverAddress))
+	s.apiEcho.Logger.Error(s.apiEcho.Start(s.configuration.ServerAddress))
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
