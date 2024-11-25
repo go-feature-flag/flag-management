@@ -56,7 +56,7 @@ func setupTest(t *testing.T, sqlFileToInsert []string) (*testcontainerPostgres.P
 	driver, err := postgres.WithInstance(conn.DB, &postgres.Config{})
 	require.NoError(t, err, "Failed to create Postgres driver instance")
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://../../database_migration",
+		"file://../../../database_migration",
 		"postgres", driver)
 	err = m.Up()
 	require.NoError(t, err)
@@ -75,7 +75,7 @@ func setupTest(t *testing.T, sqlFileToInsert []string) (*testcontainerPostgres.P
 func tearDownTest(t *testing.T, pgContainer *testcontainerPostgres.PostgresContainer, conn *sqlx.DB) {
 	driver, err := postgres.WithInstance(conn.DB, &postgres.Config{})
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://../../database_migration",
+		"file://../../../database_migration",
 		"postgres", driver)
 	err = m.Down()
 	require.NoError(t, err)
