@@ -19,8 +19,8 @@ build: build-api ## Build all the binaries and put the output in out/bin/
 create-out-dir:
 	mkdir -p out/bin
 
-build-api: create-out-dir ## Build the migration cli in out/bin/
-	CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build -mod vendor -o out/bin/goff-api .
+build-server: create-out-dir ## Build the migration cli in out/bin/
+	CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build -mod vendor -o out/bin/flag-management-api .
 
 clean: ## Remove build related file
 	-rm -fr ./bin ./out ./release
@@ -33,7 +33,7 @@ vendor: ## Copy of all packages needed to support builds and tests in the vendor
 ## Dev:
 swagger: ## Build swagger documentation
 	$(GOCMD) install github.com/swaggo/swag/cmd/swag@latest
-	swag init --parseInternal --markdownFiles docs
+	swag init --parseInternal --markdownFiles server/docs --output server/docs
 
 setup-env:
 	docker stop goff || true
@@ -43,14 +43,18 @@ setup-env:
 	migrate -source "file://database_migration" -database "postgres://goff-user:my-secret-pw@localhost:5432/gofeatureflag?sslmode=disable" up
 
 ## Test:
-test: ## Run the tests of the project
-	$(GOTEST) -v -race ./...
+test: test-server
+test-server: ## Run the tests of the project
+	$(GOTEST) -v -tags=docker -race ./...
 
-coverage: ## Run the tests of the project and export the coverage
+## Coverage:
+coverage: coverage-server ## Run all the coverage on your project
+coverage-server: ## Run the tests of the project and export the coverage
 	$(GOTEST) -cover -covermode=count -tags=docker -coverprofile=coverage.cov ./...
 
 ## Lint:
-lint: ## Use golintci-lint on your project
+lint: lint-server ## Run all the linters on your project
+lint-server: ## Use golintci-lint on your project
 	mkdir -p ./bin
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s latest # Install linters
 	./bin/golangci-lint run --timeout=5m --timeout=5m ./... --enable-only=gci --fix # Run linters
