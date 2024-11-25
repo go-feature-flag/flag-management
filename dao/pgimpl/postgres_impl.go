@@ -15,25 +15,7 @@ import (
 	_ "github.com/lib/pq" // we import the driver used by sqlx
 )
 
-func NewPostgresDao(host string, port int, dbName string, username string, password string) (dao.FlagStorage, error) {
-	if host == "" {
-		return nil, fmt.Errorf("host is empty")
-	}
-	if port == 0 {
-		return nil, fmt.Errorf("invalid port: port is 0")
-	}
-	if dbName == "" {
-		return nil, fmt.Errorf("dbName is empty")
-	}
-	if username == "" {
-		return nil, fmt.Errorf("username is empty")
-	}
-	if password == "" {
-		return nil, fmt.Errorf("password is empty")
-	}
-	connectionString := fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s?sslmode=disable", username, password, host, port, dbName)
-
+func NewPostgresDao(connectionString string) (dao.FlagStorage, error) {
 	conn, err := sqlx.Connect("postgres", connectionString)
 	if err != nil {
 		return nil, fmt.Errorf("impossible to connect to the database: %w", err)

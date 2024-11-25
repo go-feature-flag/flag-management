@@ -43,7 +43,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     }
                 }
@@ -69,7 +69,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     }
                 }
@@ -101,19 +101,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict - when trying to insert a flag with a name that already exists",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     }
                 }
@@ -145,13 +145,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     }
                 }
@@ -190,19 +190,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     }
                 }
@@ -232,19 +232,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     }
                 }
@@ -285,19 +285,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/model.HTTPError"
+                            "$ref": "#/definitions/model.ErrorResponse"
                         }
                     }
                 }
@@ -309,10 +309,25 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "code": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 200
                 },
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "API is up and running"
+                }
+            }
+        },
+        "model.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 500
+                },
+                "errorDetails": {
+                    "type": "string",
+                    "example": "An error occurred"
                 }
             }
         },
@@ -407,19 +422,6 @@ const docTemplate = `{
                 "FlagTypeDouble",
                 "FlagTypeJSON"
             ]
-        },
-        "model.HTTPError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "example": 500
-                },
-                "errorDetails": {
-                    "type": "string",
-                    "example": "An error occurred"
-                }
-            }
         },
         "model.ProgressiveRollout": {
             "type": "object",
