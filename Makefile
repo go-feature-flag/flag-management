@@ -43,14 +43,18 @@ setup-env:
 	migrate -source "file://database_migration" -database "postgres://goff-user:my-secret-pw@localhost:5432/gofeatureflag?sslmode=disable" up
 
 ## Test:
-test: ## Run the tests of the project
+test: test-server
+test-server: ## Run the tests of the project
 	$(GOTEST) -v -race ./...
 
-coverage: ## Run the tests of the project and export the coverage
+## Coverage:
+coverage: coverage-server ## Run all the coverage on your project
+coverage-server: ## Run the tests of the project and export the coverage
 	$(GOTEST) -cover -covermode=count -tags=docker -coverprofile=coverage.cov ./...
 
 ## Lint:
-lint: ## Use golintci-lint on your project
+lint: lint-server ## Run all the linters on your project
+lint-server: ## Use golintci-lint on your project
 	mkdir -p ./bin
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s latest # Install linters
 	./bin/golangci-lint run --timeout=5m --timeout=5m ./... --enable-only=gci --fix # Run linters
