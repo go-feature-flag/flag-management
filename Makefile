@@ -45,7 +45,7 @@ setup-env:
 ## Test:
 test: test-server
 test-server: ## Run the tests of the project
-	$(GOTEST) -v -race ./...
+	$(GOTEST) -v -tags=docker -race ./...
 
 ## Coverage:
 coverage: coverage-server ## Run all the coverage on your project

@@ -31,7 +31,7 @@ func TestNewGOFeatureFlagManagementAPICommand(t *testing.T) {
 			name:           "should have an error when creating a new GOFeatureFlagManagementAPICommand with no access to DB",
 			options:        cmd.APICommandOptions{},
 			wantErr:        assert.Error,
-			expectedErrMsg: "error while initializing dependencies: impossible to initialize database connection: impossible to connect to the database: dial tcp [::1]:5432: connect: connection refused",
+			expectedErrMsg: "error while initializing dependencies: impossible to initialize database connection: connection string is empty",
 		},
 	}
 	for _, tt := range tests {

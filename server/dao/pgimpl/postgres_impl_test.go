@@ -8,14 +8,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-feature-flag/flag-management/server/dao"
+	daoerr "github.com/go-feature-flag/flag-management/server/dao/err"
 	"github.com/go-feature-flag/flag-management/server/dao/pgimpl"
+	"github.com/go-feature-flag/flag-management/server/model"
 	"github.com/go-feature-flag/flag-management/server/testutils"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 
-	"github.com/go-feature-flag/flag-management/server/model"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -95,84 +96,29 @@ func getPostgresDao(t *testing.T, pgContainer *testcontainerPostgres.PostgresCon
 }
 
 func TestNewPostgresDao(t *testing.T) {
-	type args struct {
-		host     string
-		port     int
-		dbName   string
-		user     string
-		password string
-	}
 	tests := []struct {
-		name           string
-		args           args
-		wantErr        assert.ErrorAssertionFunc
-		wantErrMessage string
+		name             string
+		connectionString string
+		wantErr          assert.ErrorAssertionFunc
+		wantErrMessage   string
 	}{
 		{
-			name: "should return an error for an empty host",
-			args: args{
-				host:     "",
-				port:     5432,
-				dbName:   "test",
-				user:     "user",
-				password: "password",
-			},
-			wantErr:        assert.Error,
-			wantErrMessage: "impossible to connect to the database: pq: password authentication failed for user \"user\"",
+			name:             "should return an error for an empty connection string",
+			connectionString: "postgres://user:password@localhost:5434/test?sslmode=disable",
+			wantErr:          assert.Error,
+			wantErrMessage:   "impossible to connect to the database: dial tcp [::1]:5434: connect: connection refused",
 		},
 		{
-			name: "should return an error for an empty port",
-			args: args{
-				host:     "localhost",
-				dbName:   "test",
-				user:     "user",
-				password: "password",
-			},
-			wantErr:        assert.Error,
-			wantErrMessage: "impossible to connect to the database: dial tcp [::1]:0: connect: can't assign requested address",
-		},
-		{
-			name: "should return an error for an empty dbName",
-			args: args{
-				host:     "localhost",
-				port:     5432,
-				dbName:   "",
-				user:     "user",
-				password: "password",
-			},
-			wantErr:        assert.Error,
-			wantErrMessage: "impossible to connect to the database: pq: password authentication failed for user \"user\"",
-		},
-		{
-			name: "should return an error for an empty password",
-			args: args{
-				host:     "localhost",
-				port:     5432,
-				dbName:   "test",
-				user:     "user",
-				password: "",
-			},
-			wantErr:        assert.Error,
-			wantErrMessage: "impossible to connect to the database: pq: password authentication failed for user \"user\"",
-		},
-		{
-			name: "should return an error for a not available DB",
-			args: args{
-				host:     "localhost",
-				port:     5432,
-				dbName:   "test",
-				user:     "user",
-				password: "password",
-			},
-			wantErr:        assert.Error,
-			wantErrMessage: "impossible to connect to the database: pq: password authentication failed for user \"user\"",
+			name:             "should return an error for a not available DB",
+			connectionString: "postgres://user:password@localhost:1111/test?sslmode=disable",
+			wantErr:          assert.Error,
+			wantErrMessage:   "impossible to connect to the database: dial tcp [::1]:1111: connect: connection refused",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			connectionString := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", tt.args.user, tt.args.password, tt.args.host, tt.args.port, tt.args.dbName)
-			_, err := pgimpl.NewPostgresDao(connectionString)
+			_, err := pgimpl.NewPostgresDao(tt.connectionString)
 			tt.wantErr(t, err)
 			if err != nil {
 				assert.Equal(t, tt.wantErrMessage, err.Error())

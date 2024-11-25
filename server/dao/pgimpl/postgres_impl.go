@@ -15,6 +15,10 @@ import (
 )
 
 func NewPostgresDao(connectionString string) (dao.FlagStorage, error) {
+	if connectionString == "" {
+		return nil, fmt.Errorf("connection string is empty")
+	}
+
 	conn, err := sqlx.Connect("postgres", connectionString)
 	if err != nil {
 		return nil, fmt.Errorf("impossible to connect to the database: %w", err)
