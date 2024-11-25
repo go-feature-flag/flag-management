@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/go-feature-flag/flag-management/server/config"
-	handler2 "github.com/go-feature-flag/flag-management/server/handler"
+	"github.com/go-feature-flag/flag-management/server/handler"
 	"net/http"
 
 	_ "github.com/go-feature-flag/flag-management/server/docs"
@@ -13,12 +13,12 @@ import (
 )
 
 // New creates a new instance of the API server
-func New(configuration *config.Configuration, handlers handler2.Handlers) (*Server, error) {
+func New(configuration *config.Configuration, handlers handler.Handlers) (*Server, error) {
 	if handlers.HealthHandler == nil {
-		return nil, handler2.ErrMissingHealthHandler
+		return nil, handler.ErrMissingHealthHandler
 	}
 	if handlers.FlagAPIHandler == nil {
-		return nil, handler2.ErrMissingFlagAPIHandler
+		return nil, handler.ErrMissingFlagAPIHandler
 	}
 	return &Server{
 		flagHandlers:   handlers.FlagAPIHandler,
@@ -30,8 +30,8 @@ func New(configuration *config.Configuration, handlers handler2.Handlers) (*Serv
 
 // Server is the struct that represents the API server
 type Server struct {
-	flagHandlers   *handler2.FlagAPIHandler
-	healthHandlers *handler2.HealthHandler
+	flagHandlers   *handler.FlagAPIHandler
+	healthHandlers *handler.HealthHandler
 	apiEcho        *echo.Echo
 	configuration  *config.Configuration
 }

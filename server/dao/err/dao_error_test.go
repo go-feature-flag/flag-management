@@ -2,6 +2,7 @@ package daoerr_test
 
 import (
 	"fmt"
+	daoerr "github.com/go-feature-flag/flag-management/server/dao/err"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

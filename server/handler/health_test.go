@@ -1,30 +1,37 @@
-package handler
+package handler_test
 
 import (
+	"github.com/go-feature-flag/flag-management/server/api"
+	"github.com/go-feature-flag/flag-management/server/config"
 	"github.com/go-feature-flag/flag-management/server/dao"
+	"github.com/go-feature-flag/flag-management/server/handler"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestHealthHandler_Health(t *testing.T) {
-	e := echo.New()
-
 	t.Run("API is up and running", func(t *testing.T) {
 		mockDao, err := dao.NewInMemoryMockDao()
 		require.NoError(t, err)
 		mockDao.OnPingReturnError(false)
 
-		h := NewHealthHandler(mockDao)
+		hh := handler.NewHealthHandler(mockDao)
+		hf := handler.NewFlagAPIHandler(mockDao, nil)
+		s, err := api.New(&config.Configuration{
+			Mode: "development",
+		}, handler.Handlers{
+			HealthHandler:  &hh,
+			FlagAPIHandler: &hf,
+		})
+		require.NoError(t, err)
+
 		req := httptest.NewRequest(http.MethodGet, "/health", nil)
 		rec := httptest.NewRecorder()
-		c := e.NewContext(req, rec)
-
-		require.NoError(t, h.Health(c))
+		s.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.JSONEq(t, `{"message":"API is up and running","code":200}`, rec.Body.String())
 	})
@@ -34,12 +41,19 @@ func TestHealthHandler_Health(t *testing.T) {
 		require.NoError(t, err)
 		mockDao.OnPingReturnError(true)
 
-		h := NewHealthHandler(mockDao)
+		hh := handler.NewHealthHandler(mockDao)
+		hf := handler.NewFlagAPIHandler(mockDao, nil)
+		s, err := api.New(&config.Configuration{
+			Mode: "development",
+		}, handler.Handlers{
+			HealthHandler:  &hh,
+			FlagAPIHandler: &hf,
+		})
+		require.NoError(t, err)
+
 		req := httptest.NewRequest(http.MethodGet, "/health", nil)
 		rec := httptest.NewRecorder()
-		c := e.NewContext(req, rec)
-
-		require.NoError(t, h.Health(c))
+		s.ServeHTTP(rec, req)
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
 		assert.JSONEq(t, `{"errorDetails":"error on ping","code":500}`, rec.Body.String())
 	})

@@ -22,7 +22,7 @@ func Test_customHTTPErrorHandler(t *testing.T) {
 		e.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rec.Code)
-		assert.Equal(t, "{\"errorDetails\":\"toto\",\"code\":500}\n", rec.Body.String())
+		assert.JSONEq(t, `{"errorDetails":"Internal server error: toto","code":500}`, rec.Body.String())
 	})
 	t.Run("should return an error with correct code if echo.HTTPError", func(t *testing.T) {
 		e := echo.New()
@@ -35,6 +35,6 @@ func Test_customHTTPErrorHandler(t *testing.T) {
 		e.ServeHTTP(rec, req)
 
 		assert.Equal(t, http.StatusNotFound, rec.Code)
-		assert.Equal(t, "{\"errorDetails\":\"code=404, message=not found\",\"code\":404}\n", rec.Body.String())
+		assert.JSONEq(t, `{"errorDetails":"not found","code":404}`, rec.Body.String())
 	})
 }

@@ -37,7 +37,7 @@ func setUpTest(t *testing.T) (api.Server, int) {
 
 	port, err := testutils.GetFreePort()
 	require.NoError(t, err)
-	c := config.Configuration{
+	c := &config.Configuration{
 		ServerAddress: fmt.Sprintf(":%d", port),
 		Mode:          "development",
 	}
@@ -208,7 +208,7 @@ func TestNoValidHandlers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			port, err := testutils.GetFreePort()
 			require.NoError(t, err)
-			c := config.Configuration{
+			c := &config.Configuration{
 				ServerAddress: fmt.Sprintf(":%d", port),
 				Mode:          "development",
 			}

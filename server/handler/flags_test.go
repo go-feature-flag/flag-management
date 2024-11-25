@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/go-feature-flag/flag-management/server/api"
+	"github.com/go-feature-flag/flag-management/server/config"
 	"github.com/go-feature-flag/flag-management/server/dao"
 	daoErr "github.com/go-feature-flag/flag-management/server/dao/err"
 	"github.com/go-feature-flag/flag-management/server/handler"
@@ -55,17 +57,22 @@ func TestFlagsHandler_GetAllFeatureFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := echo.New()
 			mockDao, err := dao.NewInMemoryMockDao()
 			require.NoError(t, err)
 			mockDao.SetFlags(tt.flags)
 
-			h := handler.NewFlagAPIHandler(mockDao, nil)
+			hf := handler.NewFlagAPIHandler(mockDao, nil)
+			hh := handler.NewHealthHandler(mockDao)
+			s, err := api.New(&config.Configuration{
+				Mode: "development",
+			}, handler.Handlers{
+				FlagAPIHandler: &hf,
+				HealthHandler:  &hh,
+			})
+			require.NoError(t, err)
 			req := httptest.NewRequestWithContext(tt.ctx, http.MethodGet, "/v1/flags", nil)
 			rec := httptest.NewRecorder()
-			c := e.NewContext(req, rec)
-
-			require.NoError(t, h.GetAllFeatureFlags(c))
+			s.ServeHTTP(rec, req)
 			assert.Equal(t, tt.expectedHTTPCode, rec.Code)
 			fmt.Println(rec.Body.String())
 			assert.JSONEq(t, tt.expectedBody, rec.Body.String())
@@ -119,21 +126,24 @@ func TestFlagsHandler_GetFeatureFlagByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := echo.New()
 			mockDao, err := dao.NewInMemoryMockDao()
 			require.NoError(t, err)
 			mockDao.SetFlags(tt.flags)
 
-			h := handler.NewFlagAPIHandler(mockDao, nil)
+			hf := handler.NewFlagAPIHandler(mockDao, nil)
+			hh := handler.NewHealthHandler(mockDao)
+			s, err := api.New(&config.Configuration{
+				Mode: "development",
+			}, handler.Handlers{
+				FlagAPIHandler: &hf,
+				HealthHandler:  &hh,
+			})
+			require.NoError(t, err)
 			req := httptest.NewRequestWithContext(
-				tt.ctx, http.MethodGet, "/v1/flags/:id", nil)
+				tt.ctx, http.MethodGet, fmt.Sprintf("/v1/flags/%s", tt.ID), nil)
 
 			rec := httptest.NewRecorder()
-			c := e.NewContext(req, rec)
-			c.SetParamNames("id")
-			c.SetParamValues(tt.ID)
-
-			require.NoError(t, h.GetFeatureFlagByID(c))
+			s.ServeHTTP(rec, req)
 			assert.Equal(t, tt.expectedHTTPCode, rec.Code)
 			assert.JSONEq(t, tt.expectedBody, rec.Body.String())
 		})
@@ -524,12 +534,20 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := echo.New()
 			mockDao, err := dao.NewInMemoryMockDao()
 			require.NoError(t, err)
 			mockDao.SetFlags(tt.flags)
-			h := handler.NewFlagAPIHandler(mockDao, &handler.FlagAPIHandlerOptions{Clock: &testutils2.ClockMock{}})
 
+			hf := handler.NewFlagAPIHandler(mockDao, &handler.FlagAPIHandlerOptions{Clock: &testutils2.ClockMock{}})
+			hh := handler.NewHealthHandler(mockDao)
+
+			s, err := api.New(&config.Configuration{
+				Mode: "development",
+			}, handler.Handlers{
+				FlagAPIHandler: &hf,
+				HealthHandler:  &hh,
+			})
+			require.NoError(t, err)
 			var body io.Reader
 			if tt.newFlagAsString != "" {
 				body = bytes.NewReader([]byte(tt.newFlagAsString))
@@ -538,14 +556,13 @@ func TestFlagsHandler_CreateNewFlag(t *testing.T) {
 				require.NoError(t, err)
 				body = bytes.NewReader(b)
 			}
+			require.NoError(t, err)
 
 			req := httptest.NewRequestWithContext(
 				tt.ctx, http.MethodPost, "/v1/flags", body)
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
-			c := e.NewContext(req, rec)
-
-			require.NoError(t, h.CreateNewFlag(c))
+			s.ServeHTTP(rec, req)
 			assert.Equal(t, tt.expectedHTTPCode, rec.Code)
 			assert.JSONEq(t, tt.expectedBody, rec.Body.String())
 		})
@@ -591,20 +608,24 @@ func TestFlagsHandler_DeleteFlagByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := echo.New()
 			mockDao, err := dao.NewInMemoryMockDao()
 			require.NoError(t, err)
 			mockDao.SetFlags(tt.flags)
-			h := handler.NewFlagAPIHandler(mockDao, nil)
+
+			hf := handler.NewFlagAPIHandler(mockDao, nil)
+			hh := handler.NewHealthHandler(mockDao)
+
+			s, err := api.New(&config.Configuration{
+				Mode: "development",
+			}, handler.Handlers{
+				FlagAPIHandler: &hf,
+				HealthHandler:  &hh,
+			})
+			require.NoError(t, err)
 			req := httptest.NewRequestWithContext(
-				tt.ctx, http.MethodDelete, "/v1/flags/:id", nil)
-
+				tt.ctx, http.MethodDelete, fmt.Sprintf("/v1/flags/%s", tt.id), nil)
 			rec := httptest.NewRecorder()
-			c := e.NewContext(req, rec)
-			c.SetParamNames("id")
-			c.SetParamValues(tt.id)
-			require.NoError(t, h.DeleteFlagByID(c))
-
+			s.ServeHTTP(rec, req)
 			assert.Equal(t, tt.expectedHTTPCode, rec.Code)
 			if rec.Code == http.StatusNoContent {
 				flagAfterDelete, err := mockDao.GetFlags(tt.ctx)
@@ -751,15 +772,21 @@ func TestFlagsHandler_UpdateFlagByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := echo.New()
 			mockDao, err := dao.NewInMemoryMockDao()
 			require.NoError(t, err)
 			mockDao.SetFlags(tt.flags)
 			options := &handler.FlagAPIHandlerOptions{
 				Clock: testutils2.ClockMock{},
 			}
-			h := handler.NewFlagAPIHandler(mockDao, options)
-
+			hf := handler.NewFlagAPIHandler(mockDao, options)
+			hh := handler.NewHealthHandler(mockDao)
+			s, err := api.New(&config.Configuration{
+				Mode: "development",
+			}, handler.Handlers{
+				FlagAPIHandler: &hf,
+				HealthHandler:  &hh,
+			})
+			require.NoError(t, err)
 			var body io.Reader
 			if tt.updatedFlagAsString != "" {
 				body = bytes.NewReader([]byte(tt.updatedFlagAsString))
@@ -768,15 +795,12 @@ func TestFlagsHandler_UpdateFlagByID(t *testing.T) {
 				require.NoError(t, err)
 				body = bytes.NewReader(b)
 			}
-
+			require.NoError(t, err)
 			req := httptest.NewRequestWithContext(
-				tt.ctx, http.MethodPut, "/v1/flags/:id", body)
+				tt.ctx, http.MethodPut, fmt.Sprintf("/v1/flags/%s", tt.id), body)
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
-			c := e.NewContext(req, rec)
-			c.SetParamNames("id")
-			c.SetParamValues(tt.id)
-			require.NoError(t, h.UpdateFlagByID(c))
+			s.ServeHTTP(rec, req)
 			fmt.Println(rec.Body.String())
 			assert.JSONEq(t, tt.expectedBody, rec.Body.String())
 			assert.Equal(t, tt.expectedHTTPCode, rec.Code)
@@ -844,22 +868,27 @@ func TestFlagsHandler_UpdateFeatureFlagStatus(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := echo.New()
 			mockDao, err := dao.NewInMemoryMockDao()
 			require.NoError(t, err)
 			mockDao.SetFlags(tt.flags)
 			options := &handler.FlagAPIHandlerOptions{
 				Clock: testutils2.ClockMock{},
 			}
-			h := handler.NewFlagAPIHandler(mockDao, options)
+			hf := handler.NewFlagAPIHandler(mockDao, options)
+			hh := handler.NewHealthHandler(mockDao)
+
+			s, err := api.New(&config.Configuration{
+				Mode: "development",
+			}, handler.Handlers{
+				FlagAPIHandler: &hf,
+				HealthHandler:  &hh,
+			})
+			require.NoError(t, err)
 			req := httptest.NewRequestWithContext(
-				tt.ctx, http.MethodPut, "/v1/flags/:id/status", bytes.NewReader([]byte(tt.body)))
+				tt.ctx, http.MethodPatch, fmt.Sprintf("/v1/flags/%s/status", tt.id), bytes.NewReader([]byte(tt.body)))
 			req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 			rec := httptest.NewRecorder()
-			c := e.NewContext(req, rec)
-			c.SetParamNames("id")
-			c.SetParamValues(tt.id)
-			require.NoError(t, h.UpdateFeatureFlagStatus(c))
+			s.ServeHTTP(rec, req)
 			// TODO: delete 👇
 			fmt.Println(rec.Body.String())
 			assert.JSONEq(t, tt.expectedBody, rec.Body.String())

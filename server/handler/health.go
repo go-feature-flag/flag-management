@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/go-feature-flag/flag-management/server/dao"
 	"net/http"
 
@@ -33,8 +34,10 @@ func (f HealthHandler) Health(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	return c.JSON(http.StatusOK, successResponse{
+	err1 := c.JSON(http.StatusOK, successResponse{
 		Message: "API is up and running",
 		Code:    http.StatusOK,
 	})
+	fmt.Println(err1)
+	return err1
 }
