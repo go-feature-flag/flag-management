@@ -19,11 +19,12 @@ import {
   updateFeatureFlagStatusById,
 } from "../../../api/goffApi.ts";
 import { ConfirmationModal } from "../../../components/modal/ConfirmationModal.tsx";
-import { formatDate } from "../../../helpers/dateFormater.ts";
+import { formatAndLocalizedDate } from "../../../helpers/dateFormater.ts";
 import type { FeatureFlagFormData } from "../../../models/featureFlagFormData.ts";
 import styles from "./styles.module.css";
 
 const translationBaseKey = "page.flags.flagList.row";
+
 export function FlagRow(props: {
   currentFlag: FeatureFlagFormData;
   flags: FeatureFlagFormData[];
@@ -89,7 +90,7 @@ export function FlagRow(props: {
             <Tooltip
               content={`${t(
                 `${translationBaseKey}.tooltip.created`,
-              )} ${formatDate(creationDate)}`}
+              )} ${formatAndLocalizedDate(creationDate)}`}
             >
               <HiOutlineInformationCircle />
             </Tooltip>
@@ -122,7 +123,8 @@ export function FlagRow(props: {
         onClick={() => navigate(flagDetailsPageLocation)}
       >
         <span className={"max-lg:hidden"}>
-          {t(`${translationBaseKey}.lastUpdated`)} {formatDate(lastUpdatedDate)}
+          {t(`${translationBaseKey}.lastUpdated`)}{" "}
+          {formatAndLocalizedDate(lastUpdatedDate)}
         </span>
       </TableCell>
       <TableCell className={"max-w-fit"}>

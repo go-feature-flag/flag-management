@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 
 type-check.tsbuildinfo
+coverage/

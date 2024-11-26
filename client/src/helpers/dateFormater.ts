@@ -1,15 +1,18 @@
-export function formatDate(inputDate?: Date): string {
+export function formatAndLocalizedDate(
+  inputDate?: Date,
+  locales?: Intl.LocalesArgument,
+  options?: Intl.DateTimeFormatOptions,
+): string {
   if (!inputDate) {
     return "";
   }
-
-  const options: Intl.DateTimeFormatOptions = {
+  const formatOptions: Intl.DateTimeFormatOptions = {
     day: "numeric",
     month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   };
-
-  return new Intl.DateTimeFormat("en-US", options).format(inputDate);
+  const localDate = new Date(inputDate.toLocaleString(locales, options));
+  return new Intl.DateTimeFormat("us-US", formatOptions).format(localDate);
 }

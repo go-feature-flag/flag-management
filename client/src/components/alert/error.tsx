@@ -1,7 +1,7 @@
 import { Alert, Button } from "flowbite-react";
+import type { ComponentProps, FC } from "react";
 import { useTranslation } from "react-i18next";
 import { HiExclamationCircle } from "react-icons/hi2";
-import type { IconType } from "react-icons/lib";
 
 const translationBaseKey = "component.alert";
 export const AlertError = ({
@@ -11,7 +11,7 @@ export const AlertError = ({
   errorDetails,
 }: {
   text: string;
-  icon?: IconType;
+  icon?: FC<ComponentProps<"svg">>;
   proposeRefresh?: boolean;
   errorDetails?: string;
 }) => {
