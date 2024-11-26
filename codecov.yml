@@ -7,3 +7,10 @@ ignore:
   - "**/*_mock.go"
   - "**/testdata/"
   - "**/testutils/"
+coverage:
+  status:
+    project:
+      default:
+        flags:
+          - client
+          - server
