@@ -59,7 +59,7 @@ coverage-server: ## Run the tests of the project and export the coverage
 	$(GOTEST) -cover -covermode=count -tags=docker -coverprofile=coverage.cov ./...
 
 coverage-client: ## Run the tests of the project and export the coverage
-	cd client && npm install && npm run test
+	cd client && npm install && npm run coverage
 
 ## Lint:
 lint: lint-server lint-client ## Run all the linters on your project
