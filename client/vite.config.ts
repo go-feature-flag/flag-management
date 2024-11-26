@@ -11,5 +11,9 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./tests/setup.ts",
     disableConsoleIntercept: true, // This line is to be able to console log in tests
+    coverage: {
+      provider: "istanbul", // or 'v8'
+      reporter: ["text", "json", "html"],
+    },
   },
 });
