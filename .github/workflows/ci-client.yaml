@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - add-client
   pull_request:
     types: [ opened, synchronize, reopened ]
     paths:
