@@ -8,9 +8,9 @@ import (
 // version, releaseDate are override by the makefile during the build.
 var version = "localdev"
 
-// @title GO Feature Flag - configuration API
+// @title GO Feature Flag - flag management API
 // @description.markdown
-// @contact.name GO feature flag configuration API
+// @contact.name GO feature flag management API
 // @contact.url https://gofeatureflag.org
 // @contact.email contact@gofeatureflag.org
 // @license.name MIT

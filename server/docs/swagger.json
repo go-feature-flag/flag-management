@@ -2,9 +2,9 @@
     "swagger": "2.0",
     "info": {
         "description": "# Introduction\n\nThis API is documented in **OpenAPI format** and describe the REST API of the **`GO Feature Flag configuration API`**.\n\nThe goal of this micro-service is to offer a way to configure your feature flags in a more centralized and convenient way than a file.\n",
-        "title": "GO Feature Flag - configuration API",
+        "title": "GO Feature Flag - flag management API",
         "contact": {
-            "name": "GO feature flag configuration API",
+            "name": "GO feature flag management API",
             "url": "https://gofeatureflag.org",
             "email": "contact@gofeatureflag.org"
         },
