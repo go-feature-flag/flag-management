@@ -48,6 +48,8 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-node@v4
       - run: make coverage-client
+      - run: ls -la client
+      - run: ls -la client/coverage
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
