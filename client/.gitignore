@@ -25,3 +25,4 @@ dist-ssr
 
 type-check.tsbuildinfo
 coverage/
+dist/

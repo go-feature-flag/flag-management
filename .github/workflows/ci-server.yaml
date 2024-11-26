@@ -69,6 +69,7 @@ jobs:
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
+          flags: server
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 

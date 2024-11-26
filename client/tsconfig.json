@@ -24,8 +24,7 @@
     "strictNullChecks": true,
     "types": [
       "vitest/globals",
-      "@testing-library/jest-dom",
-      "@testing-library/jest-dom/extend-expect"
+      "@testing-library/jest-dom"
     ]
   },
   "include": [

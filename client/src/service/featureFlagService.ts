@@ -66,7 +66,9 @@ export const getDefaultFormData = (
     lastUpdatedDate: new Date(),
     variations: defaultValueVariations,
     metadata: [],
-    defaultRule: {},
+    defaultRule: {
+      id: uuidv4(),
+    },
     targetingRules: [],
   });
 };

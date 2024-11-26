@@ -12,7 +12,7 @@ import ts from "typescript";
 const configFilePath = ts.findConfigFile(
   "./",
   ts.sys.fileExists,
-  "tsconfig.json"
+  "tsconfig.json",
 );
 const projectPath = path.resolve(path.dirname(configFilePath));
 const configFile = ts.readConfigFile(configFilePath, ts.sys.readFile);
@@ -28,7 +28,7 @@ const compilerOptions = ts.parseJsonConfigFileContent(
     // required to force emission of tsbuildinfo file(?)
     outDir: "tmp",
     noEmit: true,
-  }
+  },
 );
 
 //
@@ -55,7 +55,7 @@ const diagnostics = [
 ].filter(
   (it) =>
     it.file.fileName.startsWith(projectPath + path.sep) &&
-    !it.file.fileName.includes("node_modules")
+    !it.file.fileName.includes("node_modules"),
 );
 
 //
@@ -74,7 +74,7 @@ const reportDiagnostics = (diagnostics) => {
 
 const reportSummary = (errorCount, filesInError) => {
   console.log(
-    ts.getErrorSummaryText(errorCount, filesInError, ts.sys.newLine, ts.sys)
+    ts.getErrorSummaryText(errorCount, filesInError, ts.sys.newLine, ts.sys),
   );
 };
 
