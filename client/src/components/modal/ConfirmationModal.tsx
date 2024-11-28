@@ -9,6 +9,7 @@ import {
 import type { IconType } from "react-icons/lib";
 
 const baseTranslationKey = "component.modal";
+
 interface DeleteModalProps {
   isOpen: boolean;
   text: string;
@@ -25,19 +26,24 @@ interface DeleteModalProps {
 export function ConfirmationModal(props: DeleteModalProps) {
   const [confirmationText, setConfirmationText] = useState("");
   const { t } = useTranslation();
+
   function isButtonDisabled() {
     return (
       props.confirmationText !== undefined &&
       confirmationText !== props.confirmationText
     );
   }
+
   return (
     <Modal show={props.isOpen} size="lg" onClose={props.onClickCancel} popup>
-      <Modal.Header />
-      <Modal.Body>
+      <Modal.Header data-testid={"confirm-modal-header"} />
+      <Modal.Body data-testid={"confirm-modal-body"}>
         <div className="text-center">
           {props.icon ?? (
-            <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14" />
+            <HiOutlineExclamationCircle
+              className="mx-auto mb-4 h-14 w-14"
+              data-testid={"default-confirm-modal-icon"}
+            />
           )}
           <h3 className="mb-5 text-lg font-normal">{props.text}</h3>
           {props.confirmationText && (
@@ -55,6 +61,7 @@ export function ConfirmationModal(props: DeleteModalProps) {
                   className={"w-full"}
                   placeholder={props.confirmationText}
                   onChange={(event) => setConfirmationText(event.target.value)}
+                  data-testid={"confirm-modal-text-input"}
                 />
               </div>
             </>
@@ -64,16 +71,25 @@ export function ConfirmationModal(props: DeleteModalProps) {
               color="failure"
               onClick={props.onClickYes}
               disabled={isButtonDisabled()}
+              data-testid={"confirm-modal-yes-button"}
             >
               {props.okText ?? t(`${baseTranslationKey}.okText`)}
             </Button>
-            <Button color="gray" onClick={props.onClickCancel}>
+            <Button
+              color="gray"
+              onClick={props.onClickCancel}
+              data-testid={"confirm-modal-cancel-button"}
+            >
               {props.cancelText ?? t(`${baseTranslationKey}.cancelText`)}
             </Button>
           </div>
         </div>
         {props.error && (
-          <Alert color="failure" icon={HiInformationCircle}>
+          <Alert
+            color="failure"
+            icon={HiInformationCircle}
+            data-testid={"confirm-modal-error"}
+          >
             {props.error}
           </Alert>
         )}

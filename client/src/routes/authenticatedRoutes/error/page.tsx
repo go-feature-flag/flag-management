@@ -1,9 +1,8 @@
 import { useTranslation } from "react-i18next";
 import type { ErrorResponse } from "react-router-dom";
-import { Link, isRouteErrorResponse, useRouteError } from "react-router-dom";
+import { isRouteErrorResponse, Link, useRouteError } from "react-router-dom";
 import img404 from "../../../assets/pages/error/404.svg";
 import img500 from "../../../assets/pages/error/500.svg";
-import Image from "../../../components/image/Image";
 import { useDocumentTitle } from "../../../hooks/documentTitle.ts";
 
 const baseTranslationKey = "page.error";
@@ -67,7 +66,7 @@ const ErrorPage = (props: ErrorProps) => {
           </Link>
         </div>
         <div className="mx-5 my-12 w-full lg:flex lg:w-1/2 lg:justify-end">
-          <Image src={props.img} alt={props.imgAlt} width={450} />
+          <img src={props.img} alt={props.imgAlt} width={450} />
         </div>
       </div>
     </div>

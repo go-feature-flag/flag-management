@@ -21,7 +21,7 @@
     "@vitest/coverage-v8": "^2.1.5",
     "autoprefixer": "^10.4.16",
     "clsx": "^2.1.0",
-    "flowbite-react": "^0.10.1",
+    "flowbite-react": "^0.10.2",
     "i18next": "^23.7.15",
     "i18next-browser-languagedetector": "^7.2.0",
     "localforage": "^1.10.0",

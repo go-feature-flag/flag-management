@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 import { Position } from "../../@types/config";
 import { config } from "../../config";
 import { isSmallScreen } from "../../helpers/isSmallScreen";
-import Image from "../image/Image";
 import { useSidebarContext } from "./SidebarContextHelper";
 
 export const AppNavbar: FC<Record<string, never>> = function () {
@@ -35,7 +34,7 @@ export const AppNavbar: FC<Record<string, never>> = function () {
                 )}
               </button>
               <Navbar.Brand as={Link} to={"/"}>
-                <Image
+                <img
                   alt="GO Feature Flag logo"
                   height={50}
                   src={config.logo}

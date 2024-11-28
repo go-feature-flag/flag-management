@@ -3,7 +3,7 @@ import { Button, Toast } from "flowbite-react";
 import { HiX } from "react-icons/hi";
 import { HiCheck } from "react-icons/hi2";
 import { MdOutlineSaveAlt } from "react-icons/md";
-import Loader from "../../../components/loader/Loader.tsx";
+import Loader from "../../../components/loader/loader.tsx";
 
 export const FlagSaveButton = ({
   loadingSave,

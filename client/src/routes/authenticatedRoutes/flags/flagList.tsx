@@ -14,7 +14,7 @@ import { FaCirclePlus } from "react-icons/fa6";
 import { HiMagnifyingGlass } from "react-icons/hi2";
 import { Await, useAsyncError, useLoaderData } from "react-router-dom";
 import { AlertError } from "../../../components/alert/error.tsx";
-import Loader from "../../../components/loader/Loader.tsx";
+import Loader from "../../../components/loader/loader.tsx";
 import type { FeatureFlagFormData } from "../../../models/featureFlagFormData.ts";
 import { FlagRow } from "./flagRow";
 import { NewFlagModal } from "./newFlagModal.tsx";

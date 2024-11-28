@@ -5,10 +5,10 @@ import { Link } from "react-router-dom";
 import community from "../../../assets/pages/contact/community.svg";
 import contact from "../../../assets/pages/contact/contact.svg";
 import support from "../../../assets/pages/contact/support.svg";
-import Image from "../../../components/image/Image";
 import { useDocumentTitle } from "../../../hooks/documentTitle.ts";
 
 const translationBaseKey = "page.contact";
+
 interface ContactCardProps {
   title: string;
   description: string;
@@ -40,6 +40,7 @@ const contactCards: ContactCardProps[] = [
     link: "https://gofeatureflag.org/slack",
   },
 ];
+
 function ContactCard(props: ContactCardProps) {
   return (
     <div className="flex h-full min-h-fit content-center px-2 py-3">
@@ -47,7 +48,7 @@ function ContactCard(props: ContactCardProps) {
         <Card
           className=" h-full max-w-lg place-items-center hover:bg-gray-100 hover:shadow-xl dark:hover:bg-gray-700"
           renderImage={() => (
-            <Image src={props.img} alt={props.imgAlt} height={190} />
+            <img src={props.img} alt={props.imgAlt} height={190} />
           )}
         >
           <div className={"min-h-fit"}>

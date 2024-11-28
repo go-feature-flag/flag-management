@@ -25,7 +25,7 @@ import {
 } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { AlertError } from "../../../components/alert/error.tsx";
-import Loader from "../../../components/loader/Loader.tsx";
+import Loader from "../../../components/loader/loader.tsx";
 import { config } from "../../../config.ts";
 import { useDocumentTitle } from "../../../hooks/documentTitle.ts";
 import type { FeatureFlagFormData } from "../../../models/featureFlagFormData.ts";
@@ -42,6 +42,7 @@ import { FlagSaveButton } from "./saveButton.tsx";
 import { Settings } from "./settings/settings.tsx";
 import { TargetingPage } from "./targeting/targetingPage.tsx";
 import { VariationTab } from "./variations/variationTab.tsx";
+
 const translationBaseKey = "page.flag";
 
 /**
