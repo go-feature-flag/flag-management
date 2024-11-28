@@ -62,10 +62,6 @@ describe("Error Alert", () => {
       const { getByRole } = render(
         <AlertError text={"foo"} proposeRefresh={true} />,
       );
-      const refreshButton = getByRole("button", {
-        name: "component.alert.refreshButton",
-      });
-
       const reloadMock = vi.fn();
       Object.defineProperty(window, "location", {
         value: {
@@ -73,7 +69,9 @@ describe("Error Alert", () => {
         },
         writable: true,
       });
-      refreshButton.click();
+      getByRole("button", {
+        name: "component.alert.refreshButton",
+      }).click();
       expect(reloadMock).toHaveBeenCalled();
       reloadMock.mockRestore();
     });

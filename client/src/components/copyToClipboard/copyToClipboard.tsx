@@ -1,9 +1,18 @@
 import { Button } from "flowbite-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FaCheck } from "react-icons/fa6";
 import { IoMdCopy } from "react-icons/io";
 
-export const CopyToClipboard = ({ value }: { value: string }) => {
+const baseTranslationKey = "component.copyToClipboard";
+export const CopyToClipboard = ({
+  textToCopy,
+  timeDisplayCopied = 2000,
+}: {
+  textToCopy: string;
+  timeDisplayCopied?: number;
+}) => {
+  const { t } = useTranslation();
   const [isCopied, setIsCopied] = useState(false);
   return (
     <Button
@@ -12,19 +21,28 @@ export const CopyToClipboard = ({ value }: { value: string }) => {
       className={"absolute right-2 top-2"}
       onClick={async (event: { preventDefault: () => void }) => {
         event.preventDefault();
-        await navigator.clipboard.writeText(value);
+        await navigator.clipboard.writeText(textToCopy);
         setIsCopied(true);
         setTimeout(() => {
           setIsCopied(false);
-        }, 2000);
+        }, timeDisplayCopied);
       }}
     >
       {isCopied ? (
-        <FaCheck className={"mr-1 h-4 w-4 border-green-500 text-green-500"} />
+        <FaCheck
+          className={"mr-1 h-4 w-4 border-green-500 text-green-500"}
+          data-testid={"check-icon"}
+        />
       ) : (
-        <IoMdCopy className={"mr-1 h-4 w-4"} />
+        <IoMdCopy className={"mr-1 h-4 w-4"} data-testid={"copy-icon"} />
       )}
-      {isCopied ? <span className={"text-green-500"}>Copied</span> : "Copy"}
+      {isCopied ? (
+        <span className={"text-green-500"}>
+          {t(`${baseTranslationKey}.copied`)}
+        </span>
+      ) : (
+        t(`${baseTranslationKey}.copy`)
+      )}
     </Button>
   );
 };

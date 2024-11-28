@@ -35,6 +35,7 @@ export const GoffBreadcrumb = ({
       setClipBoardTooltip(clipBoardTooltipText);
     }, 2000);
   }
+
   return (
     <Breadcrumb aria-label="Feature Flags" className={"pl-3 pt-3 font-thin"}>
       <Breadcrumb.Item className={styles.breadcrumbItem} icon={title.icon}>

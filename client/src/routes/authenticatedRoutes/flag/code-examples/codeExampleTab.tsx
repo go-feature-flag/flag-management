@@ -110,7 +110,7 @@ export const CodeExamples = () => {
         <ChooseLanguage language={language} setLanguage={setLanguage} />
         <div className="relative w-full">
           <CopyToClipboard
-            value={currentLanguage?.snippets.getSnippetInstall()}
+            textToCopy={currentLanguage?.snippets.getSnippetInstall()}
           />
           <SyntaxHighlighter
             language={currentLanguage.language}
@@ -129,7 +129,9 @@ export const CodeExamples = () => {
       >
         <ChooseLanguage language={language} setLanguage={setLanguage} />
         <div className="relative w-full">
-          <CopyToClipboard value={currentLanguage?.snippets.getSnippetInit()} />
+          <CopyToClipboard
+            textToCopy={currentLanguage?.snippets.getSnippetInit()}
+          />
           <SyntaxHighlighter
             language={currentLanguage.language}
             style={syntaxHighlighterTheme}
@@ -148,7 +150,7 @@ export const CodeExamples = () => {
         <ChooseLanguage language={language} setLanguage={setLanguage} />
         <div className="relative w-full">
           <CopyToClipboard
-            value={currentLanguage?.snippets.getSnippetEvaluate()}
+            textToCopy={currentLanguage?.snippets.getSnippetEvaluate()}
           />
           <SyntaxHighlighter
             language={currentLanguage.language}
