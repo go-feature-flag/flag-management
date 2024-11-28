@@ -109,9 +109,12 @@ export const CodeExamples = () => {
       >
         <ChooseLanguage language={language} setLanguage={setLanguage} />
         <div className="relative w-full">
-          <CopyToClipboard
-            textToCopy={currentLanguage?.snippets.getSnippetInstall()}
-          />
+          <div className={"absolute right-2 top-2 "}>
+            <CopyToClipboard
+              size={"sm"}
+              textToCopy={currentLanguage?.snippets.getSnippetInstall()}
+            />
+          </div>
           <SyntaxHighlighter
             language={currentLanguage.language}
             style={syntaxHighlighterTheme}
@@ -129,9 +132,12 @@ export const CodeExamples = () => {
       >
         <ChooseLanguage language={language} setLanguage={setLanguage} />
         <div className="relative w-full">
-          <CopyToClipboard
-            textToCopy={currentLanguage?.snippets.getSnippetInit()}
-          />
+          <div className={"absolute right-2 top-2 "}>
+            <CopyToClipboard
+              size={"sm"}
+              textToCopy={currentLanguage?.snippets.getSnippetInit()}
+            />
+          </div>
           <SyntaxHighlighter
             language={currentLanguage.language}
             style={syntaxHighlighterTheme}
@@ -149,9 +155,12 @@ export const CodeExamples = () => {
       >
         <ChooseLanguage language={language} setLanguage={setLanguage} />
         <div className="relative w-full">
-          <CopyToClipboard
-            textToCopy={currentLanguage?.snippets.getSnippetEvaluate()}
-          />
+          <div className={"absolute right-2 top-2 "}>
+            <CopyToClipboard
+              size={"sm"}
+              textToCopy={currentLanguage?.snippets.getSnippetEvaluate()}
+            />
+          </div>
           <SyntaxHighlighter
             language={currentLanguage.language}
             style={syntaxHighlighterTheme}
