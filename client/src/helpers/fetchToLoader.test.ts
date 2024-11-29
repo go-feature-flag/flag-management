@@ -9,6 +9,6 @@ describe("fetchToLoader", () => {
 
     const result = fetchToLoader(mockFetcher, mockRequest);
     expect(mockFetcher).toHaveBeenCalledWith(mockRequest);
-    expect(result["deferredKeys"]).toEqual(["result"]);
+    expect(result.deferredKeys).toEqual(["result"]);
   });
 });

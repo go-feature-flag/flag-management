@@ -5,13 +5,16 @@ import { useTranslation } from "react-i18next";
 import { CgMathPercent } from "react-icons/cg";
 import { FaInfoCircle } from "react-icons/fa";
 import { HiInformationCircle } from "react-icons/hi2";
-import { GoffPercentageProgressBar } from "../../../../components/progressBar/progressBar.tsx";
+import { PercentageProgressBar } from "../../../../components/progressBar/progressBar.tsx";
 import { Section } from "../../../../components/section/section.tsx";
 import {
   extractValidationErrors,
   hasErrors,
 } from "../../../../helpers/extractValidationError.ts";
-import type { FeatureFlagFormData } from "../../../../models/featureFlagFormData.ts";
+import type {
+  FeatureFlagFormData,
+  FormFlagPageVariationInfo,
+} from "../../../../models/featureFlagFormData.ts";
 import { getColorByIndex } from "../helpers/colors.ts";
 import { isPercentageValid } from "../helpers/percentage.ts";
 
@@ -23,7 +26,7 @@ export const PercentageRollout = ({ baseName }: { baseName: string }) => {
     formState: { errors },
     watch,
   } = useFormContext();
-  const { variations } = useWatch<FeatureFlagFormData>();
+  const { variations } = useWatch<FeatureFlagFormData>() || { variations: [] };
   const numberVariations = variations?.length ?? 0;
 
   // computePercentages computes the sum of all percentages.
@@ -44,8 +47,6 @@ export const PercentageRollout = ({ baseName }: { baseName: string }) => {
     variations?.map((variation) => {
       return `${baseName}.percentage[${variation.name}]`;
     }) ?? [];
-
-  console.log(errorsToCheck);
 
   const hasVariationErrors = hasErrors(errors, errorsToCheck);
 
@@ -82,7 +83,10 @@ export const PercentageRollout = ({ baseName }: { baseName: string }) => {
 
       {numberVariations > 0 && (
         <>
-          <GoffPercentageProgressBar progress={computePercentages(baseName)} />
+          <PercentageProgressBar
+            variations={variations as FormFlagPageVariationInfo[]}
+            percentages={watch(`${baseName}.percentage`)}
+          />
           {variations?.map((variation, index: number) => (
             <Fragment key={`${baseName}.percentage.${variation.id}`}>
               {variation.name && (
@@ -121,7 +125,7 @@ export const PercentageRollout = ({ baseName }: { baseName: string }) => {
                     sizing={"sm"}
                   />
                   <label className={"ml-2"}>
-                    {getColorByIndex(index)} {variation.name}
+                    {getColorByIndex(index).emoji} {variation.name}
                   </label>
                 </div>
               )}

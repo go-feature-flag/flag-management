@@ -6,6 +6,7 @@ import { alertComponentTranslation } from "./components/alert/translation.ts";
 import { copyToClipboardComponentTranslation } from "./components/copyToClipboard/translation.ts";
 import { modalComponentTranslation } from "./components/modal/translation.ts";
 import { navigationComponentTranslation } from "./components/navigation/translation.ts";
+import { progressBarComponentTranslation } from "./components/progressBar/translation.ts";
 import { contactPageTranslation } from "./routes/authenticatedRoutes/contact/translation.ts";
 import { errorPageTranslation } from "./routes/authenticatedRoutes/error/translation.ts";
 import { flagPageTranslation } from "./routes/authenticatedRoutes/flag/translation.ts";
@@ -26,6 +27,7 @@ i18n
       modalComponentTranslation,
       copyToClipboardComponentTranslation,
       navigationComponentTranslation,
+      progressBarComponentTranslation,
 
       // pages
       contactPageTranslation,

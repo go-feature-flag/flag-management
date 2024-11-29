@@ -54,6 +54,7 @@ export const NewFlagModal = ({
       onClose={() => setNewFlag(false)}
       initialFocus={flagNameRef}
       dismissible
+      data-testid="new-flag-modal"
     >
       <Modal.Header />
       <Modal.Body>
@@ -62,7 +63,10 @@ export const NewFlagModal = ({
             {t(`${translationBaseKey}.title`)}
           </h3>
           <div className={"flex max-h-72 w-full max-2xl:hidden"}>
-            <img src={newFlagIcon} alt={"blabla"} />
+            <img
+              src={newFlagIcon}
+              alt={t(`${translationBaseKey}.labelNewFlag`)}
+            />
           </div>
           <div>
             <Label
@@ -80,6 +84,7 @@ export const NewFlagModal = ({
               color={errorMessage === "" ? "gray" : "failure"}
               onChange={(event) => setFlagName(event.target.value)}
               helperText={errorMessage}
+              data-testid="new-flag-input"
             />
             <div
               className={

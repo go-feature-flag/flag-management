@@ -163,7 +163,7 @@ const VariationLine = ({
     setValue,
     formState: { errors },
   } = useFormContext();
-  const dotColor = getColorByIndex(index);
+  const dotColor = getColorByIndex(index).emoji;
 
   return (
     <>

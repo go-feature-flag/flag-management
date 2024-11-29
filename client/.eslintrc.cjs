@@ -20,7 +20,7 @@ module.exports = {
   ],
   ignorePatterns: ["dist", ".eslintrc.cjs"],
   parser: "@typescript-eslint/parser",
-  plugins: ["react-refresh"],
+  plugins: ["react-refresh", "testing-library", "tailwindcss"],
   rules: {
     "react/react-in-jsx-scope": "off",
     "react/jsx-uses-react": "off",
@@ -43,6 +43,10 @@ module.exports = {
         config: "tailwind.config.js",
       },
     ],
+    "testing-library/await-async-queries": "error",
+    "testing-library/no-await-sync-queries": "error",
+    "testing-library/no-debugging-utils": "warn",
+    "testing-library/no-dom-import": "off",
   },
   settings: {
     react: {

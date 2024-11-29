@@ -61,7 +61,7 @@ describe("Copy To Clipboard", () => {
     render(
       <CopyToClipboard
         textToCopy={textToCopy}
-        timeDisplayCopied={500}
+        timeDisplayCopied={200}
         size={"sm"}
       />,
     );
@@ -72,7 +72,7 @@ describe("Copy To Clipboard", () => {
 
     // wait until the text is back to initial
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, 300));
     });
 
     expect(

@@ -45,6 +45,10 @@ setup-env:
 	sleep 2
 	migrate -source "file://database_migration" -database "postgres://goff-user:my-secret-pw@localhost:5432/gofeatureflag?sslmode=disable" up
 
+start-local: setup-env## Start the server locally
+	$(GOCMD) run -mod vendor main.go --mode=development --postgresConnectionString="postgres://goff-user:my-secret-pw@localhost:5432/gofeatureflag?sslmode=disable"
+
+
 ## Test:
 test: test-server
 test-server: ## Run the tests of the server project

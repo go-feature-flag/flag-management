@@ -1,28 +1,33 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { userEvent } from "@testing-library/user-event";
 import { HiExclamationCircle } from "react-icons/hi2";
 import { describe, expect } from "vitest";
 import { ConfirmationModal } from "./ConfirmationModal.tsx";
 
 describe("ConfirmationModal", () => {
   it("should not render confirmation modal if not open", () => {
+    const cancelClick = vi.fn();
+    const yesClick = vi.fn();
     render(
       <ConfirmationModal
         isOpen={false}
         text={"Are you sure?"}
-        onClickYes={() => {}}
-        onClickCancel={() => {}}
+        onClickYes={yesClick}
+        onClickCancel={cancelClick}
       />,
     );
     expect(screen.queryByTestId("confirmation-modal")).toBeNull();
   });
 
   it("should render confirmation modal if open", () => {
+    const cancelClick = vi.fn();
+    const yesClick = vi.fn();
     render(
       <ConfirmationModal
         isOpen={true}
         text={"Are you sure?"}
-        onClickYes={() => {}}
-        onClickCancel={() => {}}
+        onClickYes={yesClick}
+        onClickCancel={cancelClick}
       />,
     );
     expect(screen.getByTestId("confirm-modal-header")).toBeVisible();
@@ -31,12 +36,14 @@ describe("ConfirmationModal", () => {
   });
 
   it("should use default text for button names", () => {
+    const cancelClick = vi.fn();
+    const yesClick = vi.fn();
     render(
       <ConfirmationModal
         isOpen={true}
         text={"Are you sure?"}
-        onClickYes={() => {}}
-        onClickCancel={() => {}}
+        onClickYes={yesClick}
+        onClickCancel={cancelClick}
       />,
     );
 
@@ -50,14 +57,16 @@ describe("ConfirmationModal", () => {
   });
 
   it("should possible to override button names", () => {
+    const cancelClick = vi.fn();
+    const yesClick = vi.fn();
     const cancelButtonText = "Nope";
     const okButtonText = "Sure";
     render(
       <ConfirmationModal
         isOpen={true}
         text={"Are you sure?"}
-        onClickYes={() => {}}
-        onClickCancel={() => {}}
+        onClickYes={yesClick}
+        onClickCancel={cancelClick}
         cancelText={cancelButtonText}
         okText={okButtonText}
       />,
@@ -73,24 +82,28 @@ describe("ConfirmationModal", () => {
   });
 
   it("should have a default icon if props not specified", () => {
+    const cancelClick = vi.fn();
+    const yesClick = vi.fn();
     render(
       <ConfirmationModal
         isOpen={true}
         text={"Are you sure?"}
-        onClickYes={() => {}}
-        onClickCancel={() => {}}
+        onClickYes={yesClick}
+        onClickCancel={cancelClick}
       />,
     );
     expect(screen.getByTestId("default-confirm-modal-icon")).toBeVisible();
   });
 
   it("should have a custom icon if props not specified", () => {
+    const cancelClick = vi.fn();
+    const yesClick = vi.fn();
     render(
       <ConfirmationModal
         isOpen={true}
         text={"Are you sure?"}
-        onClickYes={() => {}}
-        onClickCancel={() => {}}
+        onClickYes={yesClick}
+        onClickCancel={cancelClick}
         icon={<HiExclamationCircle data-testid="custom-confirm-modal-icon" />}
       />,
     );
@@ -99,13 +112,14 @@ describe("ConfirmationModal", () => {
   });
 
   it("should call the onClickYes is yes button is clicked", () => {
+    const cancelClick = vi.fn();
     const yesClick = vi.fn();
     render(
       <ConfirmationModal
         isOpen={true}
         text={"Are you sure?"}
         onClickYes={yesClick}
-        onClickCancel={() => {}}
+        onClickCancel={cancelClick}
       />,
     );
 
@@ -115,12 +129,13 @@ describe("ConfirmationModal", () => {
 
   it("should call the onClickYes is yes button is clicked", () => {
     const cancelClick = vi.fn();
+    const yesClick = vi.fn();
     render(
       <ConfirmationModal
         isOpen={true}
         text={"Are you sure?"}
         onClickCancel={cancelClick}
-        onClickYes={() => {}}
+        onClickYes={yesClick}
       />,
     );
 
@@ -128,7 +143,7 @@ describe("ConfirmationModal", () => {
     expect(cancelClick).toBeCalled();
   });
 
-  it("should ask for confirmation when clicking on yes", () => {
+  it("should ask for confirmation when clicking on yes", async () => {
     const yesClick = vi.fn();
     const cancelClick = vi.fn();
     const confirmationText = "ok to delete";
@@ -148,15 +163,20 @@ describe("ConfirmationModal", () => {
     expect(screen.getByTestId("confirm-modal-yes-button")).toBeDisabled();
 
     fireEvent.focus(screen.getByTestId("confirm-modal-text-input"));
-    fireEvent.change(screen.getByTestId("confirm-modal-text-input"), {
-      target: { value: "not ok to delete" },
-    });
+    await userEvent.type(
+      screen.getByTestId("confirm-modal-text-input"),
+      "not ok to delete",
+    );
     expect(screen.getByTestId("confirm-modal-yes-button")).toBeDisabled();
-    fireEvent.change(screen.getByTestId("confirm-modal-text-input"), {
-      target: { value: confirmationText },
-    });
+
+    await userEvent.clear(screen.getByTestId("confirm-modal-text-input"));
+    await userEvent.type(
+      screen.getByTestId("confirm-modal-text-input"),
+      confirmationText,
+    );
+
     expect(screen.getByTestId("confirm-modal-yes-button")).not.toBeDisabled();
-    fireEvent.click(screen.getByTestId("confirm-modal-yes-button"));
+    await userEvent.click(screen.getByTestId("confirm-modal-yes-button"));
     expect(yesClick).toBeCalled();
   });
 

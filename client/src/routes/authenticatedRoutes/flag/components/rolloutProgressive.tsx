@@ -274,7 +274,7 @@ const VariationSelect = ({
         <Fragment key={`${name}.${variation.id}`}>
           {variation.id && (
             <option value={variation.id}>
-              {getColorByIndex(index)} {variation.name}
+              {getColorByIndex(index).emoji} {variation.name}
             </option>
           )}
         </Fragment>

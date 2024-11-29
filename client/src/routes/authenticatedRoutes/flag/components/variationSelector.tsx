@@ -66,7 +66,7 @@ export const VariationSelector = ({
             <Fragment key={variation.id}>
               {variation.id && (
                 <option value={variation.id}>
-                  {getColorByIndex(index)} {variation.name}
+                  {getColorByIndex(index).emoji} {variation.name}
                 </option>
               )}
             </Fragment>
