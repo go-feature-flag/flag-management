@@ -144,7 +144,9 @@ export const NewFlagModal = ({
           </div>
 
           <div className="w-full">
-            <Button onClick={handleCreate}>Create</Button>
+            <Button onClick={handleCreate}>
+              {t(`${translationBaseKey}.createButton`)}
+            </Button>
           </div>
         </div>
       </Modal.Body>

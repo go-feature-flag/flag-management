@@ -95,7 +95,7 @@ const PercentageValue = ({ sum }: { sum: number }) => {
         />
       );
     }
-    const toBeAffected = 100 - sum;
+    const toBeAffected = Number((100 - sum).toFixed(6)).toString();
     return <span className={"text-sm"}>{toBeAffected}%</span>;
   }
 

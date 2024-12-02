@@ -5,6 +5,7 @@ export const flagsPageTranslation = {
         flags: {
           title: "Feature Flags",
           newModal: {
+            createButton: "Create",
             title: "Create a new feature flag 🚀",
             labelNewFlag: "Flag name:",
             labelSelectType: "Type of your flag:",
