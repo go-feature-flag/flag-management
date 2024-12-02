@@ -79,9 +79,7 @@ describe("ProgressBar", () => {
         variations={variations}
       />,
     );
-    expect(screen.getAllByTestId("percentage-progress-bar-item").length).toBe(
-      3,
-    );
+    expect(screen.getByTestId("percentage-progress-bar-error")).toBeVisible();
     expect(
       screen.getByTestId("percentage-progress-bar-error-icon"),
     ).toBeVisible();

@@ -15,57 +15,66 @@ export const PercentageProgressBar = ({
   variations: FormFlagPageVariationInfo[];
   percentages: Record<string, number> | undefined;
 }) => {
-  return (
-    <div className={"flex space-x-2"}>
-      <div className={"grow"}>
-        <div className="relative min-w-full pt-1">
-          <div
-            className="mb-4 flex h-4 overflow-hidden rounded bg-gray-300 text-xs dark:bg-gray-600"
-            data-testid={"percentage-progress-bar"}
-          >
-            {variations.map((variation, index) => {
-              let percentage = percentages?.[variation.name] ?? 0;
-              percentage = Number.isNaN(percentage) ? 0 : percentage;
-              return (
-                percentage > 0 && (
-                  <div
-                    key={variation.name}
-                    style={{ width: `${percentage}%` }}
-                    data-testid={"percentage-progress-bar-item"}
-                    className={clsx(
-                      "flex flex-col justify-center whitespace-nowrap text-center text-white shadow-none",
-                      getColorByIndex(index).color,
-                    )}
-                  >
-                    {percentage > variation.name.length && variation.name}
-                  </div>
-                )
-              );
-            })}
-          </div>
-        </div>
-      </div>
-      <div className={"w-fit"} data-testid={"percentage-progress-display"}>
-        <PercentageValue percentages={percentages} variations={variations} />
-      </div>
-    </div>
-  );
-};
-
-const PercentageValue = ({
-  percentages,
-  variations,
-}: {
-  percentages: Record<string, number> | undefined;
-  variations: FormFlagPageVariationInfo[];
-}) => {
-  const { t } = useTranslation();
-
   const sum = variations.reduce((acc, variation) => {
     let value = percentages?.[variation.name] ?? 0;
     value = Number.isNaN(value) ? 0 : value;
     return acc + value;
   }, 0);
+
+  const isSumError = sum > 100 || sum < 0;
+
+  return (
+    <div className={"flex space-x-2"}>
+      <div className={"grow"}>
+        <div className="relative min-w-full pt-1">
+          <div
+            className={clsx(
+              "mb-4 flex h-4 overflow-hidden rounded bg-gray-300 text-xs dark:bg-gray-400",
+              isSumError ? "border-2 border-red-500" : "",
+            )}
+            data-testid={"percentage-progress-bar"}
+          >
+            {isSumError && (
+              <div
+                style={{ width: `100%` }}
+                className={clsx(
+                  "pattern-diagonal-lines pattern-red-600 pattern-bg-red-400 pattern-size-4 bold flex flex-col justify-center text-center text-base text-white",
+                )}
+                data-testid={"percentage-progress-bar-error"}
+              ></div>
+            )}
+            {!isSumError &&
+              variations.map((variation, index) => {
+                let percentage = percentages?.[variation.name] ?? 0;
+                percentage = Number.isNaN(percentage) ? 0 : percentage;
+                return (
+                  percentage > 0 && (
+                    <div
+                      key={variation.name}
+                      style={{ width: `${percentage}%` }}
+                      data-testid={"percentage-progress-bar-item"}
+                      className={clsx(
+                        "flex flex-col justify-center whitespace-nowrap text-center text-white shadow-none",
+                        getColorByIndex(index).color,
+                      )}
+                    >
+                      {percentage > variation.name.length && variation.name}
+                    </div>
+                  )
+                );
+              })}
+          </div>
+        </div>
+      </div>
+      <div className={"w-fit"} data-testid={"percentage-progress-display"}>
+        <PercentageValue sum={sum} />
+      </div>
+    </div>
+  );
+};
+
+const PercentageValue = ({ sum }: { sum: number }) => {
+  const { t } = useTranslation();
 
   function displayPercentage(sum: number): ReactNode {
     if (Number.isNaN(sum) || sum > 100 || sum < 0) {
