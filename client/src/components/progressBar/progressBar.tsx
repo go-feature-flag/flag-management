@@ -30,7 +30,7 @@ export const PercentageProgressBar = ({
           <div
             className={clsx(
               "mb-4 flex h-4 overflow-hidden rounded bg-gray-300 text-xs dark:bg-gray-400",
-              isSumError ? "border-2 border-red-500" : "",
+              isSumError ? "border-2 border-red-500 dark:border-red-400" : "",
             )}
             data-testid={"percentage-progress-bar"}
           >
@@ -95,7 +95,8 @@ const PercentageValue = ({ sum }: { sum: number }) => {
         />
       );
     }
-    return <span className={"text-sm"}>{sum}%</span>;
+    const toBeAffected = 100 - sum;
+    return <span className={"text-sm"}>{toBeAffected}%</span>;
   }
 
   return <div>{displayPercentage(sum)}</div>;

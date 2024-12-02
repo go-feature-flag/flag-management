@@ -46,8 +46,26 @@ describe("ProgressBar", () => {
       3,
     );
     expect(screen.getByTestId("percentage-progress-display")).toBeVisible();
+  });
+  it("should display remaining percentages", () => {
+    const percentages = {
+      variation1: 25,
+      variation2: 12,
+      variation4: 25,
+    };
+
+    render(
+      <PercentageProgressBar
+        percentages={percentages}
+        variations={variations}
+      />,
+    );
+    expect(screen.getAllByTestId("percentage-progress-bar-item").length).toBe(
+      3,
+    );
+    expect(screen.getByTestId("percentage-progress-display")).toBeVisible();
     expect(screen.getByTestId("percentage-progress-display")).toHaveTextContent(
-      "75%",
+      "38%",
     );
   });
   it("should ignore percentages if not part of the variations", () => {
