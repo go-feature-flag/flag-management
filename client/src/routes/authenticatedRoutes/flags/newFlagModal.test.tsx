@@ -1,7 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { v4 as uuid } from "uuid";
 import { expect } from "vitest";
 import { variationTypes } from "../flag/helpers/variations.ts";
 import { NewFlagModal } from "./newFlagModal.tsx";
@@ -11,7 +10,7 @@ describe("New flag modal", () => {
   it("should render the new flag modal", () => {
     render(
       <MemoryRouter>
-        <NewFlagModal newFlag={true} setNewFlag={vi.fn()} featureFlags={[]} />
+        <NewFlagModal handleClose={vi.fn()} featureFlags={[]} />
       </MemoryRouter>,
     );
     expect(
@@ -22,7 +21,7 @@ describe("New flag modal", () => {
   it("should have a radio button for all variation types items", () => {
     render(
       <MemoryRouter>
-        <NewFlagModal newFlag={true} setNewFlag={vi.fn()} featureFlags={[]} />
+        <NewFlagModal handleClose={vi.fn()} featureFlags={[]} />
       </MemoryRouter>,
     );
 
@@ -41,7 +40,7 @@ describe("New flag modal", () => {
   it("should change radio checked if user click", async () => {
     render(
       <MemoryRouter>
-        <NewFlagModal newFlag={true} setNewFlag={vi.fn()} featureFlags={[]} />
+        <NewFlagModal handleClose={vi.fn()} featureFlags={[]} />
       </MemoryRouter>,
     );
     expect(
@@ -64,7 +63,7 @@ describe("New flag modal", () => {
   it("should display an error if flag name is empty", async () => {
     render(
       <MemoryRouter>
-        <NewFlagModal newFlag={true} setNewFlag={vi.fn()} featureFlags={[]} />
+        <NewFlagModal handleClose={vi.fn()} featureFlags={[]} />
       </MemoryRouter>,
     );
 
@@ -82,23 +81,7 @@ describe("New flag modal", () => {
   it("should display an error if flag name already exists", async () => {
     render(
       <MemoryRouter>
-        <NewFlagModal
-          newFlag={true}
-          setNewFlag={vi.fn()}
-          featureFlags={[
-            {
-              id: uuid(),
-              name: "flag1",
-              type: "boolean",
-              variations: [],
-              defaultRule: {
-                id: uuid(),
-                variationSelect: "var1",
-              },
-              targetingRules: [],
-            },
-          ]}
-        />
+        <NewFlagModal handleClose={vi.fn()} featureFlags={["flag1"]} />
       </MemoryRouter>,
     );
 
@@ -112,15 +95,6 @@ describe("New flag modal", () => {
     expect(screen.getByText("page.flags.newModal.error.exists")).toBeVisible();
   });
 
-  it("should not display modal if newFlag is false", async () => {
-    render(
-      <MemoryRouter>
-        <NewFlagModal newFlag={false} setNewFlag={vi.fn()} featureFlags={[]} />
-      </MemoryRouter>,
-    );
-    expect(screen.queryByTestId("new-flag-modal")).toBeNull;
-  });
-
   it("should redirect when creating a new flag", async () => {
     vi.mock("react-router-dom", async () => {
       const actual = await vi.importActual("react-router-dom");
@@ -132,7 +106,7 @@ describe("New flag modal", () => {
 
     render(
       <MemoryRouter>
-        <NewFlagModal newFlag={true} setNewFlag={vi.fn()} featureFlags={[]} />,
+        <NewFlagModal handleClose={vi.fn()} featureFlags={[]} />,
       </MemoryRouter>,
     );
     await userEvent.click(
@@ -146,28 +120,22 @@ describe("New flag modal", () => {
       screen.getByRole("button", { name: "page.flags.newModal.createButton" }),
     );
 
-    // test that click navigate to new URL
     expect(mockedUsedNavigate).toHaveBeenCalledWith(
       `/flags/new/flag1?type=${variationTypes[4].type}`,
     );
   });
 
   it("should close the modal on click on cancel cross", async () => {
-    const setNewFlag = vi.fn();
+    const handleClose = vi.fn();
     render(
       <MemoryRouter>
-        <NewFlagModal
-          newFlag={true}
-          setNewFlag={setNewFlag}
-          featureFlags={[]}
-        />
-        ,
+        <NewFlagModal handleClose={handleClose} featureFlags={[]} />,
       </MemoryRouter>,
     );
     expect(
       screen.getByAltText("page.flags.newModal.labelNewFlag"),
     ).toBeVisible();
     await userEvent.click(screen.getByRole("button", { name: "Close" }));
-    expect(setNewFlag).toBeCalledWith(false);
+    expect(handleClose).toBeCalled();
   });
 });

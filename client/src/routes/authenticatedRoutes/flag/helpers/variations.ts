@@ -2,7 +2,7 @@ import { t } from "i18next";
 import _ from "lodash";
 import type { RegisterOptions } from "react-hook-form";
 import { AiOutlineFieldString } from "react-icons/ai";
-import { FaToggleOn } from "react-icons/fa6";
+import { BsToggleOn } from "react-icons/bs";
 import type { IconType } from "react-icons/lib";
 import { TbNumbers } from "react-icons/tb";
 import { VscJson } from "react-icons/vsc";
@@ -31,7 +31,7 @@ export const variationTypes: {
     name: "Boolean",
     type: "boolean",
     displayName: "Bool",
-    icon: FaToggleOn,
+    icon: BsToggleOn,
     maxVariations: 2,
     inputValueType: "text",
     valueNotEditable: true,

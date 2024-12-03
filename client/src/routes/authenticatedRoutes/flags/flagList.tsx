@@ -63,9 +63,12 @@ const FlagTable = ({
     <>
       {newFlag && (
         <NewFlagModal
-          setNewFlag={setNewFlag}
-          newFlag={newFlag}
-          featureFlags={featureFlags}
+          handleClose={() => setNewFlag(false)}
+          featureFlags={
+            flagList
+              .filter((flag) => flag !== undefined)
+              .map((flag) => flag.name) as string[]
+          }
         />
       )}
       <Table hoverable>

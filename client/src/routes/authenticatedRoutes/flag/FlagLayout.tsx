@@ -1,7 +1,7 @@
 import { Breadcrumb } from "flowbite-react";
 import type { FC, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { HiMiniRocketLaunch } from "react-icons/hi2";
+import { BsToggleOn } from "react-icons/bs";
 import { Link } from "react-router-dom";
 import { CopyToClipboard } from "../../../components/copyToClipboard/copyToClipboard.tsx";
 import styles from "./style.module.css";
@@ -33,10 +33,7 @@ const FlagHierarchy = ({ name }: { name: string }) => {
       aria-label="Feature Flags"
       className={"flex pl-3 pt-3 font-thin"}
     >
-      <Breadcrumb.Item
-        className={styles.breadcrumbItem}
-        icon={HiMiniRocketLaunch}
-      >
+      <Breadcrumb.Item className={styles.breadcrumbItem} icon={BsToggleOn}>
         <Link to="/">{t("component.navigation.featureFlags")}</Link>
       </Breadcrumb.Item>
       <Breadcrumb.Item className={"text-base font-light lg:text-lg"}>

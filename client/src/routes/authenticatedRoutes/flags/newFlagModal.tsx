@@ -4,18 +4,15 @@ import { Trans, useTranslation } from "react-i18next";
 import { HiOutlineInformationCircle } from "react-icons/hi2";
 import { useNavigate } from "react-router-dom";
 import newFlagIcon from "../../../assets/pages/flags/newflag.svg";
-import type { FeatureFlagFormData } from "../../../models/featureFlagFormData.ts";
 import { variationTypes } from "../flag/helpers/variations.ts";
 
 const translationBaseKey = "page.flags.newModal";
 export const NewFlagModal = ({
-  newFlag,
-  setNewFlag,
   featureFlags,
+  handleClose,
 }: {
-  newFlag: boolean;
-  setNewFlag: (flagState: boolean) => void;
-  featureFlags: FeatureFlagFormData[];
+  handleClose: () => void;
+  featureFlags: string[];
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -38,8 +35,7 @@ export const NewFlagModal = ({
       return t(`${translationBaseKey}.error.required`);
     }
 
-    const res =
-      featureFlags.find((flag) => flag.name === flagName) === undefined;
+    const res = featureFlags.find((flag) => flag === flagName) === undefined;
     if (!res) {
       return t(`${translationBaseKey}.error.exists`);
     }
@@ -48,10 +44,10 @@ export const NewFlagModal = ({
 
   return (
     <Modal
-      show={newFlag}
+      show={true}
       size="2xl"
       popup
-      onClose={() => setNewFlag(false)}
+      onClose={handleClose}
       initialFocus={flagNameRef}
       dismissible
       data-testid="new-flag-modal"

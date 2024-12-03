@@ -1,9 +1,9 @@
 import { t } from "i18next";
 import { BiBuoy } from "react-icons/bi";
+import { BsToggleOn } from "react-icons/bs";
 import {
   HiAdjustmentsHorizontal,
   HiBars4,
-  HiMiniRocketLaunch,
   HiSquare3Stack3D,
 } from "react-icons/hi2";
 import { IoLogoGithub, IoMdHelpCircle } from "react-icons/io";
@@ -39,7 +39,7 @@ export const config: GoffConfiguration = {
         {
           link: "/",
           title: t("component.navigation.featureFlags"),
-          icon: HiMiniRocketLaunch,
+          icon: BsToggleOn,
         },
         {
           link: "#",

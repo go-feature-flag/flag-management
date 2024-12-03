@@ -50,6 +50,7 @@ export function FlagRow(props: {
   const navigate = useNavigate();
   const flagDetailsPageLocation = `/flags/${id}`;
   const { t } = useTranslation();
+
   /**
    * handleConfirmDisable is called when the user confirms the disabling/enabling of the feature flag
    */
@@ -70,7 +71,16 @@ export function FlagRow(props: {
   const handleConfirmDelete = async () => {
     try {
       await deleteFeatureFlagById(id);
+      console.log("before", props.flags, id);
+      console.log(
+        "filter",
+        props.flags.filter((flag) => {
+          console.log(flag.id, id);
+          return flag.id !== id;
+        }),
+      );
       props.setFlags(props.flags.filter((flag) => flag.id !== id));
+      console.log("after", props.flags, id);
       setOpenDeleteModal(false);
     } catch (error) {
       setErrorDelete(`${t(`${translationBaseKey}.errors.delete`)} ${error}`);
