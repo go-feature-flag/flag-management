@@ -17,6 +17,8 @@ jobs:
         with:
           fetch-depth: 1
       - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
       - run: make build-client
   Lint:
     runs-on: ubuntu-latest
