@@ -2,11 +2,9 @@ import { getSnippetReplace, Snippet } from "./snippet.ts";
 
 export const ReactSnippet = new (class extends Snippet {
   getSnippetInstall() {
-    return `npm install @openfeature/go-feature-flag-web-provider
-npm install @openfeature/web-sdk
-npm install @openfeature/react-sdk
-npm install @openfeature/core`;
+    return `npm install @openfeature/go-feature-flag-web-provider @openfeature/web-sdk @openfeature/react-sdk @openfeature/core`;
   }
+
   getSnippetInit() {
     return `import { EvaluationContext, OpenFeature, OpenFeatureProvider, useFlag } from "@openfeature/react-sdk";
 import { GoFeatureFlagWebProvider } from "@openfeature/go-feature-flag-web-provider";
@@ -34,6 +32,7 @@ function App() {
   );
 }`;
   }
+
   getSnippetEvaluate(flagName?: string, type?: string) {
     const { defaultValue } = getSnippetReplace(type, "node");
     return `function Page() {

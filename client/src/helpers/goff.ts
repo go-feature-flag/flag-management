@@ -13,6 +13,7 @@ export const initGoFeatureFlag = async () => {
     baseUrl: "https://relay.proxy.gofeatureflag.org",
     pollInterval: 60000,
   });
+
   await OpenFeature.setContext({
     targetingKey,
     source: "go-feature-flag app",

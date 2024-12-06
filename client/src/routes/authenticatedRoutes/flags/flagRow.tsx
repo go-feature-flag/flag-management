@@ -25,27 +25,22 @@ import styles from "./styles.module.css";
 
 const translationBaseKey = "page.flags.flagList.row";
 
-export function FlagRow(props: {
-  currentFlag: FeatureFlagFormData;
-  flags: FeatureFlagFormData[];
-  setFlags: (flags: FeatureFlagFormData[]) => void;
+export function FlagRow({
+  flag,
+  handleDelete,
+  handleDisable,
+}: {
+  flag: FeatureFlagFormData;
+  handleDelete: (id: string) => void;
+  handleDisable: (id: string) => void;
 }) {
-  const {
-    creationDate,
-    disable,
-    name,
-    id,
-    description,
-    lastUpdatedDate,
-    type,
-    version,
-    variations,
-  } = props.currentFlag;
-  const [flagEnable, setFlagEnable] = useState(!disable);
+  const { creationDate, disable, name, id, description, lastUpdatedDate } =
+    flag;
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [openConfirmationDisable, setOpenConfirmationDisable] = useState(false);
-  const [errorDisable, setErrorDisable] = useState("");
   const [errorDelete, setErrorDelete] = useState("");
+
+  const [openDisableModal, setOpenDisableModal] = useState(false);
+  const [errorDisable, setErrorDisable] = useState("");
 
   const navigate = useNavigate();
   const flagDetailsPageLocation = `/flags/${id}`;
@@ -55,32 +50,21 @@ export function FlagRow(props: {
    * handleConfirmDisable is called when the user confirms the disabling/enabling of the feature flag
    */
   const handleConfirmDisable = async () => {
-    const checkOldValue = flagEnable;
     try {
-      await updateFeatureFlagStatusById(id, { disable: checkOldValue });
-      setFlagEnable(!checkOldValue);
-      setOpenConfirmationDisable(false);
+      await updateFeatureFlagStatusById(id, { disable: !disable });
+      handleDisable(id);
+      setOpenDisableModal(false);
     } catch (error) {
       setErrorDisable(
         `${t(`${translationBaseKey}.errors.statusChange`)} ${error}`,
       );
-      setFlagEnable(checkOldValue);
     }
   };
 
   const handleConfirmDelete = async () => {
     try {
       await deleteFeatureFlagById(id);
-      console.log("before", props.flags, id);
-      console.log(
-        "filter",
-        props.flags.filter((flag) => {
-          console.log(flag.id, id);
-          return flag.id !== id;
-        }),
-      );
-      props.setFlags(props.flags.filter((flag) => flag.id !== id));
-      console.log("after", props.flags, id);
+      handleDelete(id);
       setOpenDeleteModal(false);
     } catch (error) {
       setErrorDelete(`${t(`${translationBaseKey}.errors.delete`)} ${error}`);
@@ -112,21 +96,7 @@ export function FlagRow(props: {
             {(description ? description.length : 0) > 70 && "..."}
           </p>
         )}
-        <div className={"mt-1 max-md:hidden"}>
-          <span className="me-2 rounded bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-            {type}
-          </span>
-          {variations && (
-            <span className="me-2 rounded bg-green-100 px-2.5 py-0.5 text-sm font-medium text-green-800 dark:bg-green-900 dark:text-green-300">
-              {variations.length} variations
-            </span>
-          )}
-          {version && (
-            <span className="me-2 rounded bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300">
-              {version}
-            </span>
-          )}
-        </div>
+        <Labels currentFlag={flag} />
       </TableCell>
       <TableCell
         className={styles.lastUpdated}
@@ -140,8 +110,9 @@ export function FlagRow(props: {
       <TableCell className={"max-w-fit"}>
         <Tooltip content={t(`${translationBaseKey}.tooltip.status`)}>
           <ToggleSwitch
-            checked={flagEnable}
-            onChange={() => setOpenConfirmationDisable(true)}
+            role={"toggle-switch"}
+            checked={!disable}
+            onChange={() => setOpenDisableModal(true)}
           />
         </Tooltip>
       </TableCell>
@@ -159,35 +130,119 @@ export function FlagRow(props: {
               <FaTrashAlt className="h-4 w-4" />
             </Tooltip>
           </Button>
-          <ConfirmationModal
-            text={t(`${translationBaseKey}.modal.delete`, { name })}
-            isOpen={openDeleteModal}
-            onClickYes={handleConfirmDelete}
-            onClickCancel={() => {
-              setOpenDeleteModal(false);
-              setErrorDelete("");
-            }}
-            error={errorDelete}
-            confirmationText={name}
-          />
-          <ConfirmationModal
-            text={t(`${translationBaseKey}.modal.enable`, {
-              name: name,
-              action: flagEnable ? "disable" : "enable",
-            })}
-            isOpen={openConfirmationDisable}
-            onClickYes={handleConfirmDisable}
-            onClickCancel={() => {
-              setOpenConfirmationDisable(false);
-              setErrorDisable("");
-            }}
-            error={errorDisable}
-            icon={
-              <FaToggleOn className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
-            }
-          />
+
+          {openDeleteModal && (
+            <ConfirmationModalDelete
+              flag={flag}
+              handleYes={handleConfirmDelete}
+              handleCancel={() => {
+                setErrorDelete("");
+                setOpenDeleteModal(false);
+              }}
+              error={errorDelete}
+            />
+          )}
+          {openDisableModal && (
+            <ConfirmationModalDisable
+              flag={flag}
+              flagDisable={disable ?? false}
+              handleYes={handleConfirmDisable}
+              handleCancel={() => {
+                setErrorDisable("");
+                setOpenDisableModal(false);
+              }}
+              error={errorDisable}
+            />
+          )}
         </div>
       </TableCell>
     </TableRow>
   );
 }
+
+const ConfirmationModalDelete = ({
+  flag,
+  handleYes,
+  handleCancel,
+  error,
+}: {
+  flag: FeatureFlagFormData;
+  handleYes: () => void;
+  handleCancel: () => void;
+  error: string;
+}) => {
+  const { t } = useTranslation();
+  return (
+    <ConfirmationModal
+      data-testid="delete-modal"
+      text={t(`${translationBaseKey}.modal.delete`, flag.name ?? "delete")}
+      isOpen={true}
+      onClickYes={handleYes}
+      onClickCancel={handleCancel}
+      error={error}
+      confirmationText={flag.name ?? "delete"}
+    />
+  );
+};
+
+const ConfirmationModalDisable = ({
+  flag,
+  flagDisable,
+  handleYes,
+  handleCancel,
+  error,
+}: {
+  flag: FeatureFlagFormData;
+  flagDisable: boolean;
+  handleYes: () => void;
+  handleCancel: () => void;
+  error: string;
+}) => {
+  const { t } = useTranslation();
+  return (
+    <ConfirmationModal
+      data-testid="disable-modal"
+      text={t(`${translationBaseKey}.modal.enable`, {
+        name: flag.name,
+        action: flagDisable ? "enable" : "disable",
+      })}
+      isOpen={true}
+      onClickYes={handleYes}
+      onClickCancel={handleCancel}
+      error={error}
+      icon={
+        <FaToggleOn className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+      }
+    />
+  );
+};
+
+const Labels = ({ currentFlag }: { currentFlag: FeatureFlagFormData }) => {
+  return (
+    <div className={"mt-1 max-md:hidden"}>
+      <span
+        role={"label"}
+        className="me-2 rounded bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+      >
+        {currentFlag.type}
+      </span>
+      {currentFlag.variations && (
+        <span
+          role={"label"}
+          className="me-2 rounded bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-300"
+        >
+          {currentFlag.variations.length} variations
+        </span>
+      )}
+      {currentFlag.version && (
+        <span
+          role={"label"}
+          data-testid="label-flag-version"
+          className="me-2 rounded bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300"
+        >
+          {currentFlag.version}
+        </span>
+      )}
+    </div>
+  );
+};

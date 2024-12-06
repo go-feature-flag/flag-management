@@ -59,6 +59,19 @@ const FlagTable = ({
   const [newFlag, setNewFlag] = useState(false);
   const { t } = useTranslation();
 
+  const handleDelete = (flagId: string) => {
+    setFlagList((flags) => flags.filter((flag) => flag.id !== flagId));
+  };
+
+  const handleDisable = (flagId: string) => {
+    const flag = flagList.find((flag) => flag.id === flagId);
+    if (!flag) {
+      throw new Error("Flag not found");
+    }
+    flag.disable = !flag.disable;
+    setFlagList([flag, ...flagList.filter((flag) => flag.id !== flagId)]);
+  };
+
   return (
     <>
       {newFlag && (
@@ -107,9 +120,9 @@ const FlagTable = ({
             .map((flag) => {
               return (
                 <FlagRow
-                  flags={flagList}
-                  setFlags={setFlagList}
-                  currentFlag={flag}
+                  handleDelete={handleDelete}
+                  handleDisable={handleDisable}
+                  flag={flag}
                   key={flag.id}
                 />
               );
