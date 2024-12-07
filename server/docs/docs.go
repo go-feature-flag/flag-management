@@ -10,7 +10,7 @@ const docTemplate = `{
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
         "contact": {
-            "name": "GO feature flag configuration API",
+            "name": "GO feature flag management API",
             "url": "https://gofeatureflag.org",
             "email": "contact@gofeatureflag.org"
         },
@@ -508,7 +508,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "GO Feature Flag - configuration API",
+	Title:            "GO Feature Flag - flag management API",
 	Description:      "# Introduction\n\nThis API is documented in **OpenAPI format** and describe the REST API of the **`GO Feature Flag configuration API`**.\n\nThe goal of this micro-service is to offer a way to configure your feature flags in a more centralized and convenient way than a file.\n",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

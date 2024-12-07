@@ -14,13 +14,16 @@ RESET  := $(shell tput -Txterm sgr0)
 
 all: help
 ## Build:
-build: build-api ## Build all the binaries and put the output in out/bin/
+build: build-server build-client## Build all the binaries and put the output in out/bin/
 
 create-out-dir:
 	mkdir -p out/bin
 
-build-server: create-out-dir ## Build the migration cli in out/bin/
+build-server: create-out-dir ## Build the flag-management-api in out/bin/
 	CGO_ENABLED=0 GO111MODULE=on $(GOCMD) build -mod vendor -o out/bin/flag-management-api .
+
+build-client: ## Build the react app
+	cd client && npm install && npm run build
 
 clean: ## Remove build related file
 	-rm -fr ./bin ./out ./release
@@ -42,22 +45,34 @@ setup-env:
 	sleep 2
 	migrate -source "file://database_migration" -database "postgres://goff-user:my-secret-pw@localhost:5432/gofeatureflag?sslmode=disable" up
 
+start-local: setup-env## Start the server locally
+	$(GOCMD) run -mod vendor main.go --mode=development --postgresConnectionString="postgres://goff-user:my-secret-pw@localhost:5432/gofeatureflag?sslmode=disable"
+
 ## Test:
 test: test-server
-test-server: ## Run the tests of the project
+test-server: ## Run the tests of the server project
 	$(GOTEST) -v -tags=docker -race ./...
+
+test-client: ## Run the tests of the client project
+	cd client && npm install && npm run test
 
 ## Coverage:
 coverage: coverage-server ## Run all the coverage on your project
 coverage-server: ## Run the tests of the project and export the coverage
 	$(GOTEST) -cover -covermode=count -tags=docker -coverprofile=coverage.cov ./...
 
+coverage-client: ## Run the tests of the project and export the coverage
+	cd client && npm install && npm run coverage
+
 ## Lint:
-lint: lint-server ## Run all the linters on your project
+lint: lint-server lint-client ## Run all the linters on your project
 lint-server: ## Use golintci-lint on your project
 	mkdir -p ./bin
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s latest # Install linters
 	./bin/golangci-lint run --timeout=5m --timeout=5m ./... --enable-only=gci --fix # Run linters
+
+lint-client: ## Use linter to lint website
+	cd client && npm install && npm run lint
 
 ## Help:
 help: ## Show this help.

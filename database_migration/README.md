@@ -4,7 +4,7 @@ We are using the [`go-migrate` cli](https://github.com/golang-migrate/migrate/tr
 
 
 ```
-docker run --name goff --rm -e POSTGRES_PASSWORD=my-secret-pw -p 5432:5432 -e POSTGRES_USER=goff-user -d postgres
+docker run --name goff --rm -e POSTGRES_PASSWORD=my-secret-pw -p 5432:5432 -e POSTGRES_USER=goff-user -e POSTGRES_DB=gofeatureflag -d postgres
 ```
 
 

@@ -1,0 +1,15 @@
+.infoIcon {
+  @apply mt-1;
+  @apply text-goff-500;
+  @apply ml-2;
+}
+
+
+.lastUpdated {
+  @apply text-xs;
+  @apply col-span-2;
+  @apply text-right;
+  @apply pr-3;
+  @apply text-gray-500;
+  @apply cursor-pointer;
+}

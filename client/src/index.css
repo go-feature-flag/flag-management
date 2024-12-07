@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  /*font-family: "Poppins", sans-serif;*/
+  @apply dark:text-white;
+  @apply font-normal;
+  @apply bg-gray-50;
+  @apply dark:bg-gray-900;
+}
+
+h1 {
+  @apply text-4xl;
+  @apply dark:text-white;
+}
+
+hr {
+  @apply mt-4;
+  @apply mb-4;
+}
+
+.pageDescription {
+  @apply text-base;
+  @apply text-goff-700;
+  @apply dark:text-goff-400;
+
+  @apply mt-4;
+  @apply mb-4;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
