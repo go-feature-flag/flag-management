@@ -2,9 +2,10 @@ import { render, screen } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { Table, TableBody } from "flowbite-react";
 import { MemoryRouter } from "react-router-dom";
-import { Mock, beforeEach, expect, vi } from "vitest";
+import type { Mock } from "vitest";
+import { beforeEach, expect, vi } from "vitest";
 import { updateFeatureFlagStatusById } from "../../../api/goffApi.ts";
-import { FeatureFlagFormData } from "../../../models/featureFlagFormData.ts";
+import type { FeatureFlagFormData } from "../../../models/featureFlagFormData.ts";
 import { FlagRow } from "./flagRow.tsx";
 
 vi.mock("../../../api/goffApi.ts", () => ({

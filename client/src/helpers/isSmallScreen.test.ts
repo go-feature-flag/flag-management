@@ -1,4 +1,5 @@
-import { describe, expect, it, Mock } from "vitest";
+import type { Mock } from "vitest";
+import { describe, expect, it } from "vitest";
 import { isBrowser } from "./isBrowser";
 import { isSmallScreen } from "./isSmallScreen";
 

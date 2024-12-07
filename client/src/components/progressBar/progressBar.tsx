@@ -38,7 +38,7 @@ export const PercentageProgressBar = ({
               <div
                 style={{ width: `100%` }}
                 className={clsx(
-                  "pattern-diagonal-lines pattern-red-600 pattern-bg-red-400 pattern-size-4 bold flex flex-col justify-center text-center text-base text-white",
+                  "pattern-diagonal-lines flex flex-col justify-center text-center text-base text-white pattern-bg-red-400 pattern-red-600 pattern-size-4",
                 )}
                 data-testid={"percentage-progress-bar-error"}
               ></div>
