@@ -1,4 +1,4 @@
-name: "Build"
+name: "CI Server"
 on:
   push:
     branches:
