@@ -15,6 +15,7 @@ vi.mock("../../../api/goffApi.ts", () => ({
   updateFeatureFlagStatusById: vi.fn(),
   deleteFeatureFlagById: vi.fn(),
 }));
+const mockedUsedNavigate = vi.fn();
 
 describe("flag row", () => {
   const handleDelete = vi.fn();
@@ -53,6 +54,40 @@ describe("flag row", () => {
       version: "0.0.1",
     };
   });
+
+  describe("click flag details", () => {
+    it("should redirect to the flag details page by clicking on the row", async () => {
+      vi.mock("react-router-dom", async () => {
+        const actual = await vi.importActual("react-router-dom");
+        return {
+          ...actual,
+          useNavigate: () => mockedUsedNavigate,
+        };
+      });
+
+      render(
+        <MemoryRouter>
+          <Table hoverable>
+            <TableBody className="divide-y">
+              <FlagRow
+                handleDelete={handleDelete}
+                handleDisable={handleDisable}
+                flag={defaultFlag}
+              />
+            </TableBody>
+          </Table>
+        </MemoryRouter>,
+      );
+      expect(screen.getByText(defaultFlag.name ?? "")).toBeVisible();
+      await userEvent.click(screen.getByText(defaultFlag.name ?? ""), {
+        delay: 100,
+      });
+      expect(mockedUsedNavigate).toHaveBeenCalledWith(
+        `/flags/${defaultFlag.id}`,
+      );
+    });
+  });
+
   describe("labels", () => {
     it("should display a labels (version, variations, type) of the flag", () => {
       render(

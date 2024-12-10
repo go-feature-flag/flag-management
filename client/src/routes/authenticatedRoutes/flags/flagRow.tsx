@@ -119,7 +119,11 @@ export function FlagRow({
       <TableCell className={"max-w-fit"}>
         <div className={"right-1 flex justify-end"}>
           <Link to={flagDetailsPageLocation}>
-            <Button size="sm" className={"mr-5"}>
+            <Button
+              size="sm"
+              className={"mr-5"}
+              data-testid={"flag-row-info-button"}
+            >
               <Tooltip content={t(`${translationBaseKey}.tooltip.info`)}>
                 <HiInformationCircle className="h-4 w-4" />
               </Tooltip>
