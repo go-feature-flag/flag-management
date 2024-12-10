@@ -17,3 +17,5 @@ coverage:
           - server
 fixes:
   - "src/::client/src/"
+  - "tailwind.config.js::client/tailwind.config.js"
+  - "type-check.mjs::client/type-check.mjs"
