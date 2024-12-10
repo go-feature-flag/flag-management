@@ -4,12 +4,16 @@ import { Table, TableBody } from "flowbite-react";
 import { MemoryRouter } from "react-router-dom";
 import type { Mock } from "vitest";
 import { beforeEach, expect, vi } from "vitest";
-import { updateFeatureFlagStatusById } from "../../../api/goffApi.ts";
+import {
+  deleteFeatureFlagById,
+  updateFeatureFlagStatusById,
+} from "../../../api/goffApi.ts";
 import type { FeatureFlagFormData } from "../../../models/featureFlagFormData.ts";
 import { FlagRow } from "./flagRow.tsx";
 
 vi.mock("../../../api/goffApi.ts", () => ({
   updateFeatureFlagStatusById: vi.fn(),
+  deleteFeatureFlagById: vi.fn(),
 }));
 
 describe("flag row", () => {
@@ -407,6 +411,226 @@ describe("flag row", () => {
       expect(
         screen.getByText(
           "page.flags.flagList.row.errors.statusChange Error: Internal Server Error",
+        ),
+      ).toBeVisible();
+    });
+  });
+
+  describe("delete flag", () => {
+    it("should display a button to delete the flag", () => {
+      render(
+        <MemoryRouter>
+          <Table hoverable>
+            <TableBody className="divide-y">
+              <FlagRow
+                handleDelete={handleDelete}
+                handleDisable={handleDisable}
+                flag={{ ...defaultFlag, disable: true }}
+              />
+            </TableBody>
+          </Table>
+        </MemoryRouter>,
+      );
+      expect(screen.getByTestId("flag-row-delete-button")).toBeVisible();
+    });
+
+    it("should ask for confirmation if click on delete button", async () => {
+      render(
+        <MemoryRouter>
+          <Table hoverable>
+            <TableBody className="divide-y">
+              <FlagRow
+                handleDelete={handleDelete}
+                handleDisable={handleDisable}
+                flag={{ ...defaultFlag, disable: true }}
+              />
+            </TableBody>
+          </Table>
+        </MemoryRouter>,
+      );
+      expect(screen.getByTestId("flag-row-delete-button")).toBeVisible();
+      await userEvent.click(screen.getByTestId("flag-row-delete-button"));
+      expect(
+        screen.getByText("page.flags.flagList.row.modal.delete"),
+      ).toBeVisible();
+    });
+
+    it("should close modal if click cancel", async () => {
+      render(
+        <MemoryRouter>
+          <Table hoverable>
+            <TableBody className="divide-y">
+              <FlagRow
+                handleDelete={handleDelete}
+                handleDisable={handleDisable}
+                flag={{ ...defaultFlag, disable: true }}
+              />
+            </TableBody>
+          </Table>
+        </MemoryRouter>,
+      );
+      expect(screen.getByTestId("flag-row-delete-button")).toBeVisible();
+      await userEvent.click(screen.getByTestId("flag-row-delete-button"));
+      expect(
+        screen.getByText("page.flags.flagList.row.modal.delete"),
+      ).toBeVisible();
+
+      await userEvent.click(
+        screen.getByRole("button", {
+          name: "component.modal.cancelText",
+        }),
+      );
+
+      expect(
+        screen.queryByText("page.flags.flagList.row.modal.delete"),
+      ).toBeNull();
+    });
+
+    it("should have delete button disable if no text in the confirmation input", async () => {
+      render(
+        <MemoryRouter>
+          <Table hoverable>
+            <TableBody className="divide-y">
+              <FlagRow
+                handleDelete={handleDelete}
+                handleDisable={handleDisable}
+                flag={{ ...defaultFlag, disable: true }}
+              />
+            </TableBody>
+          </Table>
+        </MemoryRouter>,
+      );
+      await userEvent.click(screen.getByTestId("flag-row-delete-button"));
+      expect(
+        screen.getByText("page.flags.flagList.row.modal.delete"),
+      ).toBeVisible();
+      expect(
+        screen.getByRole("button", {
+          name: "component.modal.okText",
+        }),
+      ).toBeDisabled();
+    });
+
+    it("should have delete button disable if text is not correct in the confirmation input", async () => {
+      render(
+        <MemoryRouter>
+          <Table hoverable>
+            <TableBody className="divide-y">
+              <FlagRow
+                handleDelete={handleDelete}
+                handleDisable={handleDisable}
+                flag={{ ...defaultFlag, disable: true }}
+              />
+            </TableBody>
+          </Table>
+        </MemoryRouter>,
+      );
+      await userEvent.click(screen.getByTestId("flag-row-delete-button"));
+      await userEvent.type(
+        screen.getByTestId("confirm-modal-text-input"),
+        "not ok to delete",
+      );
+      expect(
+        screen.getByRole("button", {
+          name: "component.modal.okText",
+        }),
+      ).toBeDisabled();
+    });
+
+    it("should have delete button enabled if input text is flag name", async () => {
+      const flagName = "myflag";
+      render(
+        <MemoryRouter>
+          <Table hoverable>
+            <TableBody className="divide-y">
+              <FlagRow
+                handleDelete={handleDelete}
+                handleDisable={handleDisable}
+                flag={{ ...defaultFlag, disable: true, name: flagName }}
+              />
+            </TableBody>
+          </Table>
+        </MemoryRouter>,
+      );
+      await userEvent.click(screen.getByTestId("flag-row-delete-button"));
+      await userEvent.type(
+        screen.getByTestId("confirm-modal-text-input"),
+        flagName,
+        { delay: 100 },
+      );
+      expect(
+        screen.getByRole("button", {
+          name: "component.modal.okText",
+        }),
+      ).not.toBeDisabled();
+    });
+
+    it("should call handleDelete if click on ok button", async () => {
+      const mockDeleteFeatureFlagById = deleteFeatureFlagById as Mock;
+      mockDeleteFeatureFlagById.mockResolvedValue({ status: 200 });
+      const flagName = "myflag";
+      render(
+        <MemoryRouter>
+          <Table hoverable>
+            <TableBody className="divide-y">
+              <FlagRow
+                handleDelete={handleDelete}
+                handleDisable={handleDisable}
+                flag={{ ...defaultFlag, disable: true, name: flagName }}
+              />
+            </TableBody>
+          </Table>
+        </MemoryRouter>,
+      );
+      await userEvent.click(screen.getByTestId("flag-row-delete-button"));
+      await userEvent.type(
+        screen.getByTestId("confirm-modal-text-input"),
+        flagName,
+        { delay: 100 },
+      );
+      await userEvent.click(
+        screen.getByRole("button", {
+          name: "component.modal.okText",
+        }),
+      );
+      expect(handleDelete).toHaveBeenCalledWith(defaultFlag.id);
+    });
+
+    it("should display an error in the modal if API is throwing an error", async () => {
+      const mockDeleteFeatureFlagById = deleteFeatureFlagById as Mock;
+      mockDeleteFeatureFlagById.mockRejectedValue(
+        new Error("Internal Server Error"),
+      );
+
+      const flagName = "myflag";
+      render(
+        <MemoryRouter>
+          <Table hoverable>
+            <TableBody className="divide-y">
+              <FlagRow
+                handleDelete={handleDelete}
+                handleDisable={handleDisable}
+                flag={{ ...defaultFlag, disable: true, name: flagName }}
+              />
+            </TableBody>
+          </Table>
+        </MemoryRouter>,
+      );
+      await userEvent.click(screen.getByTestId("flag-row-delete-button"));
+      await userEvent.type(
+        screen.getByTestId("confirm-modal-text-input"),
+        flagName,
+        { delay: 100 },
+      );
+      await userEvent.click(
+        screen.getByRole("button", {
+          name: "component.modal.okText",
+        }),
+      );
+      expect(handleDelete).not.toHaveBeenCalled();
+      expect(
+        screen.getByText(
+          "page.flags.flagList.row.errors.delete Error: Internal Server Error",
         ),
       ).toBeVisible();
     });
