@@ -125,7 +125,11 @@ export function FlagRow({
               </Tooltip>
             </Button>
           </Link>
-          <Button size="sm" onClick={() => setOpenDeleteModal(true)}>
+          <Button
+            size="sm"
+            onClick={() => setOpenDeleteModal(true)}
+            data-testid={"flag-row-delete-button"}
+          >
             <Tooltip content={t(`${translationBaseKey}.tooltip.delete`)}>
               <FaTrashAlt className="h-4 w-4" />
             </Tooltip>
@@ -175,7 +179,9 @@ const ConfirmationModalDelete = ({
   return (
     <ConfirmationModal
       data-testid="delete-modal"
-      text={t(`${translationBaseKey}.modal.delete`, flag.name ?? "delete")}
+      text={t(`${translationBaseKey}.modal.delete`, {
+        name: flag.name ?? "delete",
+      })}
       isOpen={true}
       onClickYes={handleYes}
       onClickCancel={handleCancel}

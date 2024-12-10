@@ -7,6 +7,7 @@ ignore:
   - "**/*_mock.go"
   - "**/testdata/"
   - "**/testutils/"
+  - "translation.ts"
 coverage:
   status:
     project:
