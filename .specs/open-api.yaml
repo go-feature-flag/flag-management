@@ -51,6 +51,26 @@ paths:
           schema:
             type: string
           required: false
+
+        - name: limit # Query parameter for pagination
+          in: query
+          description: Maximum number of feature flags to return.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: offset # Query parameter for pagination
+          in: query
+          description: Number of feature flags to skip before starting to collect the result set.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+            minimum: 0
       responses:
         "200":
           description: Return the list of available flags in GO Feature flag
@@ -62,43 +82,17 @@ paths:
           content:
             application/json:
               schema:
-                items:
-                  $ref: '#/components/schemas/flag.result'
-                type: array
+                $ref: '#/components/schemas/flag.listResponse'
         "304":
           description: No change since the previous response.
         "401":
-          description: Unauthorized - You need credentials to access the API
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/401"
         "403":
-          description: Forbidden - You are not authorized to access the API
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/403"
         "429":
-          description: Rate limit reached.
-          headers:
-            Retry-After:
-              description: Indicates when to retry the request again
-              schema:
-                type: string
-                format: date-time
-                examples:
-                  - "2024-02-07T12:00:00Z"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/429"
         "500":
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/500"
 
     post:
       tags: [ Core API ]
@@ -295,7 +289,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/flagVersion.listResponse'
+                $ref: '#/components/schemas/version.listResponse'
         "400":
           $ref: "#/components/responses/400"
         "401":
@@ -644,11 +638,35 @@ components:
           type: boolean
           description: Set to true of you want to disable a feature flag with the given ID.
 
-    flagVersion.listResponse:
+    flag.listResponse:
+      description: A paginated list of available versions for a feature flag.
+      required: [ flags, total, limit, offset ]
+      properties:
+        flags:
+          type: array
+          items:
+            $ref: '#/components/schemas/flag.result'
+          description: The list of flag versions for the current page.
+        allOf:
+          $ref: '#/components/schemas/pagination'
+    
+    version.listResponse:
+      description: A paginated list of available versions for a feature flag.
+      required: [ flags, total, limit, offset ]
+      properties:
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/flag.result'
+          description: The list of flag versions for the current page.
+        allOf:
+          $ref: '#/components/schemas/pagination'
+    
+    pagination:
       description: A paginated list of available versions for a feature flag.
       required: [ versions, total, limit, offset ]
       properties:
-        versions:
+        flags:
           type: array
           items:
             $ref: '#/components/schemas/flag.result'
