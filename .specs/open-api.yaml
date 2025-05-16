@@ -117,49 +117,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/flag.result"
         "400":
-          description: Bad requestBody
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/400"
         "401":
-          description: Unauthorized - You need credentials to access the API
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/401"
         "403":
-          description: Forbidden - You are not authorized to access the API
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
-        "409":
-          description: Conflict - when trying to insert a flag with a name that already exists.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/403"
         "429":
-          description: Rate limit reached.
-          headers:
-            Retry-After:
-              description: Indicates when to retry the request again
-              schema:
-                type: string
-                format: date-time
-                examples:
-                  - "2024-02-07T12:00:00Z"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/429"
         "500":
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/500"
   /v1/flags/{id}:
     delete:
       tags: [ Core API ]
@@ -177,43 +143,15 @@ paths:
         "204":
           description: No Content - if the id is linked to no flag we will still return a 204.
         "400":
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/400"
         "401":
-          description: Unauthorized - You need credentials to access the API
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/401"
         "403":
-          description: Forbidden - You are not authorized to access the API
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/403"
         "429":
-          description: Rate limit reached.
-          headers:
-            Retry-After:
-              description: Indicates when to retry the request again
-              schema:
-                type: string
-                format: date-time
-                examples:
-                  - "2024-02-07T12:00:00Z"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/429"
         "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/500"
     get:
       summary: Retrieve a feature flag with the given ID.
       description: GET is retrieving a feature flag with the given ID.
@@ -234,49 +172,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/flag.result'
         "400":
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/400"
         "401":
-          description: Unauthorized - You need credentials to access the API
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/401"
         "403":
-          description: Forbidden - You are not authorized to access the API
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/403"
         "404":
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/404"
         "429":
-          description: Rate limit reached.
-          headers:
-            Retry-After:
-              description: Indicates when to retry the request again
-              schema:
-                type: string
-                format: date-time
-                examples:
-                  - "2024-02-07T12:00:00Z"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/429"
         "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/500"
+
     put:
       summary: Update a feature flag with the given ID.
       description: PUT is updating a feature flag with the given ID. The ID in the path is used; any ID in the body will be ignored.
@@ -302,49 +209,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/flag.result'
         "400":
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/400"
         "401":
-          description: Unauthorized - You need credentials to access the API
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/401"
         "403":
-          description: Forbidden - You are not authorized to access the API
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/403"
         "404":
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/404"
         "429":
-          description: Rate limit reached.
-          headers:
-            Retry-After:
-              description: Indicates when to retry the request again
-              schema:
-                type: string
-                format: date-time
-                examples:
-                  - "2024-02-07T12:00:00Z"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/429"
         "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/500"
   /v1/flags/{id}/status:
     patch:
       tags: [ Core API ]
@@ -371,49 +246,69 @@ paths:
               schema:
                 $ref: '#/components/schemas/flag.result'
         "400":
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/400"
         "401":
-          description: Unauthorized - You need credentials to access the API
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/401"
         "403":
-          description: Forbidden - You are not authorized to access the API
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/403"
         "404":
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/404"
         "429":
-          description: Rate limit reached.
-          headers:
-            Retry-After:
-              description: Indicates when to retry the request again
-              schema:
-                type: string
-                format: date-time
-                examples:
-                  - "2024-02-07T12:00:00Z"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error.response"
+          $ref: "#/components/responses/429"
         "500":
-          description: Internal server error
+          $ref: "#/components/responses/500"
+  /v1/flags/{id}/versions: # New endpoint for flag versions
+    get:
+      tags: [ Core API ]
+      summary: Get a paginated list of available versions for a feature flag.
+      description: Retrieve a list of all recorded versions for a specific feature flag, along with the timestamp each version became active.
+      parameters:
+        - name: id # Path parameter for the flag ID
+          in: path
+          description: ID of the feature flag.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit # Query parameter for pagination
+          in: query
+          description: Maximum number of versions to return.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: offset # Query parameter for pagination
+          in: query
+          description: Number of versions to skip before starting to collect the result set.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+            minimum: 0
+      responses:
+        "200":
+          description: A paginated list of flag versions.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error.response"
+                $ref: '#/components/schemas/flagVersion.listResponse'
+        "400":
+          $ref: "#/components/responses/400"
+        "401":
+          $ref: "#/components/responses/401"
+        "403":
+          $ref: "#/components/responses/403"
+        "404":
+          $ref: "#/components/responses/404"
+        "429":
+          $ref: "#/components/responses/429"
+        "500":
+          $ref: "#/components/responses/500"
+
 components:
   securitySchemes:
     BearerAuth:
@@ -748,3 +643,70 @@ components:
         disable:
           type: boolean
           description: Set to true of you want to disable a feature flag with the given ID.
+
+    flagVersion.listResponse:
+      description: A paginated list of available versions for a feature flag.
+      required: [ versions, total, limit, offset ]
+      properties:
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/flag.result'
+          description: The list of flag versions for the current page.
+        total:
+          type: integer
+          format: int64
+          description: Total number of available versions for this flag.
+        limit:
+          type: integer
+          format: int32
+          description: The number of items requested per page.
+        offset:
+          type: integer
+          format: int32
+          description: The offset of the current page.
+  responses:
+    "400":
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error.response"
+    "401":
+      description: Unauthorized - You need credentials to access the API
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error.response"
+    "403":
+      description: Forbidden - You are not authorized to access the API
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error.response"
+    "404":
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error.response"
+    "429":
+      description: Rate limit reached.
+      headers:
+        Retry-After:
+          description: Indicates when to retry the request again
+          schema:
+            type: string
+            format: date-time
+            examples:
+              - "2024-02-07T12:00:00Z"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error.response"
+    "500":
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error.response"

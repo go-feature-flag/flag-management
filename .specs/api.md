@@ -27,7 +27,7 @@ The command line argument should be `--config`.
 The API must be protected by an API key authentication mechanism. The API key should be passed in the request headers for all endpoints that require authentication (everything under the `[Core API]` tag).
 The API key is passed in the `Authorization` header as a Bearer token.
 
-We should aim to be compatible with most of the authentication providers such as Okta, Auth0, etc...
+We should aim to be compatible with most of the authentication providers such as Okta, Auth0, etc...  
 
 ## Database
 The API should store the data in a database.
@@ -39,3 +39,9 @@ All the migrations should be stored in the [`database_migrations`](../database_m
 
 We expect all the migration to be applied manually by running the `migrate` command, we do not expect the application to apply the migrations automatically.
 
+
+## Flag history
+The API `/v1/flags/{id}/versions` is providing the history of a flag. This endpoint should return the history of the flag, including all the changes made to it. 
+
+The history should be stored in a separate table in the database.
+We may use a trigger function to store the history of the flag in the database. The trigger function should be called on every update of the flag.
