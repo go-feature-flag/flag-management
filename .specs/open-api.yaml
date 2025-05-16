@@ -393,7 +393,7 @@ components:
             The minimum is 2 variations and, we don't have any max limit except if the variationValue is a bool, the max is 2.
           examples:
             - enabled: true
-              disable: false
+              disabled: false
             - blue-variation: "#0000FF"
               green-variation: "#008000"
               gray-variation: "#787878"
