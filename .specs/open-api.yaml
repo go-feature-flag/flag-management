@@ -1,0 +1,750 @@
+openapi: 3.1.0
+servers:
+  - url: /
+info:
+  version: 0.1.0
+  title: Flag Management API - GO Feature Flag
+  description: The flag management API allows to configure your feature flags within GO Feature Flag.
+  contact:
+    url: https://github.com/go-feature-flag/flag-management
+    email: contact@gofeatureflag.org
+  license:
+    identifier: MIT
+    name: MIT
+security:
+  - BearerAuth: [ ]
+tags:
+  - name: Core API
+    description: |
+      API to be able to manage your feature flags.
+  - name: Monitoring API
+    description: |
+      Endpoint to check that the API is healthy
+paths:
+  /health:
+    get:
+      tags: [ Monitoring API ]
+      summary: Check if service is up and running
+      description: Check if the API is up and running and that the database is available.
+      responses:
+        "200":
+          description: API is up and running
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/health.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response" # Added for consistency
+  /v1/flags:
+    get:
+      tags: [ Core API ]
+      summary: retrieve all the available feature flags.
+      description: GET request to retrieve all the available feature flags.
+      parameters:
+        - in: header
+          name: If-None-Match
+          description: The request will be processed only if ETag doesn't match any of the values listed.
+          schema:
+            type: string
+          required: false
+      responses:
+        "200":
+          description: Return the list of available flags in GO Feature flag
+          headers:
+            ETag:
+              schema:
+                type: string
+              description: Entity tag used for cache validation
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/flag.result'
+                type: array
+        "304":
+          description: No change since the previous response.
+        "401":
+          description: Unauthorized - You need credentials to access the API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "403":
+          description: Forbidden - You are not authorized to access the API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "429":
+          description: Rate limit reached.
+          headers:
+            Retry-After:
+              description: Indicates when to retry the request again
+              schema:
+                type: string
+                format: date-time
+                examples:
+                  - "2024-02-07T12:00:00Z"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+
+    post:
+      tags: [ Core API ]
+      summary: Create a new Feature Flag
+      description: POST request to create a new feature flag.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/flag.create'
+      responses:
+        "201":
+          description: The feature flag has been created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/flag.result"
+        "400":
+          description: Bad requestBody
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "401":
+          description: Unauthorized - You need credentials to access the API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "403":
+          description: Forbidden - You are not authorized to access the API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "409":
+          description: Conflict - when trying to insert a flag with a name that already exists.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "429":
+          description: Rate limit reached.
+          headers:
+            Retry-After:
+              description: Indicates when to retry the request again
+              schema:
+                type: string
+                format: date-time
+                examples:
+                  - "2024-02-07T12:00:00Z"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+  /v1/flags/{id}:
+    delete:
+      tags: [ Core API ]
+      summary: Delete the flag with the given ID
+      description: DELETE - Delete the flag with the given ID.
+      parameters:
+        - name: id
+          in: path
+          description: ID of the feature flag
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: No Content - if the id is linked to no flag we will still return a 204.
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "401":
+          description: Unauthorized - You need credentials to access the API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "403":
+          description: Forbidden - You are not authorized to access the API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "429":
+          description: Rate limit reached.
+          headers:
+            Retry-After:
+              description: Indicates when to retry the request again
+              schema:
+                type: string
+                format: date-time
+                examples:
+                  - "2024-02-07T12:00:00Z"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+    get:
+      summary: Retrieve a feature flag with the given ID.
+      description: GET is retrieving a feature flag with the given ID.
+      tags: [ Core API ]
+      parameters:
+        - name: id
+          in: path
+          description: ID of the feature flag
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Feature Flag with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/flag.result'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "401":
+          description: Unauthorized - You need credentials to access the API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "403":
+          description: Forbidden - You are not authorized to access the API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "429":
+          description: Rate limit reached.
+          headers:
+            Retry-After:
+              description: Indicates when to retry the request again
+              schema:
+                type: string
+                format: date-time
+                examples:
+                  - "2024-02-07T12:00:00Z"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+    put:
+      summary: Update a feature flag with the given ID.
+      description: PUT is updating a feature flag with the given ID. The ID in the path is used; any ID in the body will be ignored.
+      tags: [ Core API ]
+      parameters:
+        - name: id
+          in: path
+          description: ID of the feature flag
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/flag.update'
+      responses:
+        "200":
+          description: Feature flag updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/flag.result'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "401":
+          description: Unauthorized - You need credentials to access the API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "403":
+          description: Forbidden - You are not authorized to access the API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "429":
+          description: Rate limit reached.
+          headers:
+            Retry-After:
+              description: Indicates when to retry the request again
+              schema:
+                type: string
+                format: date-time
+                examples:
+                  - "2024-02-07T12:00:00Z"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+  /v1/flags/{id}/status:
+    patch:
+      tags: [ Core API ]
+      summary: update the status of a feature flag
+      description: PATCH - Update the status of the flag with the given ID
+      parameters:
+        - name: id
+          in: path
+          description: ID of the feature flag
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateStatus.request'
+      responses:
+        "200":
+          description: Status of the flag changed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/flag.result'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "401":
+          description: Unauthorized - You need credentials to access the API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "403":
+          description: Forbidden - You are not authorized to access the API
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "429":
+          description: Rate limit reached.
+          headers:
+            Retry-After:
+              description: Indicates when to retry the request again
+              schema:
+                type: string
+                format: date-time
+                examples:
+                  - "2024-02-07T12:00:00Z"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error.response"
+components:
+  securitySchemes:
+    BearerAuth:
+      description: (optional) Bearer Authorization to your flag management system.
+      type: http
+      scheme: bearer
+  schemas:
+    health.SuccessResponse:
+      description: Success response if service is up and running
+      properties:
+        code:
+          type: integer
+          examples: [ 200 ]
+        message:
+          type: string
+          examples: [ "API is up and running" ]
+
+    error.response:
+      description: Standard error response
+      properties:
+        errorCode:
+          type: string
+          examples: [ "FLAG_NAME_ALREADY_EXISTS" ]
+        errorDetails:
+          type: string
+          examples: [ "A flag with this name already exists" ]
+
+    flag.result:
+      description: Represents a feature flag as a result of an API call (e.g., GET, POST).
+      required: [ id, name, type, createdDate, lastUpdatedDate, variations, defaultRule, lastModifiedBy ]
+      allOf:
+        - $ref: '#/components/schemas/flag.common'
+      properties:
+        createdDate:
+          type: string
+          description: Creation date for this feature flag
+          format: date-time
+        lastUpdatedDate:
+          type: string
+          description: Date of the last update for this feature flag
+          format: date-time
+
+    flag.create:
+      description: Payload for creating a new feature flag. ID is client-provided.
+      required: [ id, name, type, variations, defaultRule, lastModifiedBy ]
+      allOf:
+        - $ref: '#/components/schemas/flag.common'
+
+    flag.update:
+      description: Payload for updating an existing feature flag. ID is taken from the path and should not be in the body.
+      required: [ name, type, variations, defaultRule, lastModifiedBy ]
+      allOf:
+        - $ref: '#/components/schemas/flag.baseProperties' # Excludes 'id'
+      properties:
+        scheduledRollout:
+          type: array
+          items:
+            $ref: '#/components/schemas/rollout.scheduled.step'
+          description: Configure an update on some fields of your flag over time.
+
+    flag.baseProperties:
+      # 'required' fields for these base properties are effectively determined by consuming schemas like flag.update
+      description: Base properties for a feature flag, excluding the 'id'.
+      properties:
+        name:
+          type: string
+          description: name of the feature flag
+          examples: [ "featureA" ]
+        type:
+          type: string
+          enum:
+            - boolean
+            - string
+            - integer
+            - double
+            - json
+          description: Type of the feature flag
+          examples:
+            - boolean
+            - string
+            - integer
+            - double
+            - json
+        variations:
+          type: object
+          description: |
+            An object defining the different values a flag can take. Keys are variation identifiers (strings), and values are the actual variation values, which can be any valid JSON type (object, array, string, number, boolean, or null).
+            The minimum is 2 variations and, we don't have any max limit except if the variationValue is a bool, the max is 2.
+          examples:
+            - enabled: true
+              disable: false
+            - blue-variation: "#0000FF"
+              green-variation: "#008000"
+              gray-variation: "#787878"
+          additionalProperties:
+            oneOf:
+              - type: object
+                additionalProperties: true
+              - type: array
+                items: { }
+              - type: string
+              - type: number
+              - type: boolean
+              - type: 'null'
+
+        bucketingKey:
+          description: BucketingKey defines a source for a dynamic targeting key.
+          type: string
+          examples: [ teamId ]
+
+        description:
+          type: string
+          description: A string that explains the purpose of this feature flag
+          examples: [ "This flag enable feature A" ]
+
+        defaultRule:
+          description: This rule applied if none of the targeting rule is applied.
+          $ref: '#/components/schemas/rule.default'
+          examples:
+            - id: "018f4b62-5868-7a78-938d-246c888cf838"
+              variation: "variationA"
+            - id: "018f4b62-8204-7076-8277-aec021153a8a"
+              percentage:
+                variationA: 50
+                variationB: 50
+
+        disable:
+          type: boolean
+          description: If disable is true if the flag is disabled.
+          default: false
+
+        experimentationRollout:
+          $ref: '#/components/schemas/rollout.experimentation'
+
+        lastModifiedBy:
+          type: string
+          description: name or id of the last person who has modified the flag
+          examples: [ "Mike Wazowski" ]
+
+        metadata:
+          type: object
+          description: A map of key-value pairs for additional flag information. Keys are strings, and values can be a string, number, or boolean.
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: number
+              - type: boolean
+          examples:
+            - featureOwner: "backend-team"
+              slaImpact: "medium"
+              ticketNumber: 12345
+              isCritical: false
+
+        targeting:
+          type: array
+          description: An array of targeting rules. These rules are evaluated in order. The first rule that matches will determine the flag's variation for the user.
+          items:
+            $ref: '#/components/schemas/rule.targeting'
+          examples:
+            - - id: "018f4b62-5868-7a78-938d-246c888cf818"
+                name: "Rule 1"
+                query: targetingKey eq "018f4b62-5868-7a78-938d-246c888cf734"
+                variation: "newFeatureVariation"
+                disable: false
+              - id: "018f4b62-8204-7076-8277-aec021153a8e"
+                name: "Rule 2"
+                query: targetingKey eq "018f4b62-5868-7a78-938d-246c888cf111"
+                percentage:
+                  variationA: 50
+                  variationB: 50
+                disable: false
+
+        trackEvents:
+          type: boolean
+          description: if trackEvents is false we won't export the data related to this flag.
+          default: true
+        version:
+          type: string
+          description: |
+            This field contains the version of the flag.
+            The version is manually managed when you configure your flags and, it is used to display the information in the notifications and data collection.
+          examples: [ "v1.0.0", "4" ]
+
+    flag.properties: # Renamed from flag.properties to avoid clash, now includes 'id'
+      description: All properties for a feature flag, including its 'id'.
+      allOf:
+        - $ref: '#/components/schemas/flag.baseProperties'
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of a feature flag.
+          examples: [ "6c8b0dcd-5e3a-41a0-9954-e89603880ce5" ]
+
+    flag.common:
+      description: Common structure for a feature flag, including 'id' and scheduled rollout capabilities. Used for creation and results.
+      allOf:
+        - $ref: '#/components/schemas/flag.properties'
+      properties:
+        scheduledRollout:
+          type: array
+          items:
+            $ref: '#/components/schemas/rollout.scheduled.step'
+          description: Configure an update on some fields of your flag over time.
+
+    rule.targeting:
+      description: A rule to target a subset of the users.
+      required: [ name, query ]
+      allOf:
+        - $ref: '#/components/schemas/rule.common'
+        - type: object
+          properties:
+            query:
+              type: string
+              description: A query string used for complex rule evaluation or targeting user segments (e.g., based on user attributes).
+              examples:
+                - targetingKey eq "12345"
+                - "{ \"==\" : [ { \"var\" : \"userId\" }, \"12345\"]}"
+            disable:
+              description: Disable indicates that this rule is disabled.
+              type: boolean
+              default: false
+            name:
+              description: Name is the name of the rule.
+              type: string
+              examples: [ "rule 1" ]
+
+    rule.default:
+      description: A default rule.
+      allOf:
+        - $ref: '#/components/schemas/rule.common'
+
+    rule.common:
+      description: Common properties and serving logic for any rule.
+      required: [ id ]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of a rule.
+          examples: [ "6c8b0dcd-5e3a-41a0-9954-e89603880ce5" ]
+        percentage:
+          type: object
+          description: A map where keys are string identifiers (e.g., variation names or other keys) and values represent percentage allocations as floating-point numbers.
+          additionalProperties:
+            type: number
+            format: float
+          examples:
+            - variationA: 70.5
+              variationB: 29.5
+            - variationA: 70
+              variationB: 20
+              variationC: 10
+        variation:
+          description: represents the variation name to use if the rule apply for the user.
+          type: string
+          examples: [ "variationA" ]
+        progressiveRollout:
+          $ref: '#/components/schemas/rollout.progressive'
+          description: represents a rollout technique for your rule, it move from 1 state to the other between the dates.
+      oneOf:
+        - required: [ percentage ]
+          properties:
+            variation: false
+            progressiveRollout: false
+        - required: [ variation ]
+          properties:
+            percentage: false
+            progressiveRollout: false
+        - required: [ progressiveRollout ]
+          properties:
+            variation: false
+            percentage: false
+
+    rollout.progressive:
+      description: Defines the initial and end states for a progressive rollout.
+      required: [ initial, end ]
+      properties:
+        initial:
+          $ref: '#/components/schemas/rollout.progressive.step'
+          description: "initial state of the progressive rollout"
+        end:
+          $ref: '#/components/schemas/rollout.progressive.step'
+          description: "end state of the progressive rollout"
+
+    rollout.progressive.step:
+      description: Defines a specific step in a progressive rollout.
+      required: [ date ]
+      properties:
+        date:
+          type: string
+          format: date-time
+          description: Date is the time it starts or ends.
+        percentage:
+          type: number
+          format: float
+          description: Percentage is the percentage (initial or end) for the progressive rollout.
+          examples: [ 0 ]
+        variation:
+          description: Variation to use for the rollout step.
+          type: string
+          examples: [ "variationA" ]
+
+    rollout.experimentation:
+      description: Defines the start and end dates for an experimentation rollout.
+      required: [ start, end ]
+      properties:
+        start:
+          type: string
+          format: date-time
+          description: Before this date the flag is considered disabled.
+        end:
+          type: string
+          format: date-time
+          description: After this date the flag is considered disabled.
+
+    rollout.scheduled.step:
+      description: Defines a future state for a flag in a scheduled rollout.
+      required: [ date ]
+      allOf:
+        - $ref: '#/components/schemas/flag.baseProperties' # Inherits mutable properties
+      properties:
+        date: # Date is specific to the step
+          type: string
+          format: date-time
+          description: Date when to apply the change for this flag
+
+    updateStatus.request:
+      description: Payload for updating the status of a feature flag.
+      required: [ disable ]
+      properties:
+        disable:
+          type: boolean
+          description: Set to true of you want to disable a feature flag with the given ID.
