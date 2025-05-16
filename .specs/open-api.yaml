@@ -51,6 +51,7 @@ paths:
           schema:
             type: string
           required: false
+
         - name: limit # Query parameter for pagination
           in: query
           description: Maximum number of feature flags to return.
