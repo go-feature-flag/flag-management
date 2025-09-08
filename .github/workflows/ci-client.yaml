@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22.x
       - run: make build-client
@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
       - run: make lint-client
 
   Test:
@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
       - run: make test-client
 
   Coverage:
@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
       - run: make coverage-client
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
